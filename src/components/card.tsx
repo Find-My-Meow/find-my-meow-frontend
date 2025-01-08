@@ -1,4 +1,3 @@
- // Card.tsx
 const Card = () => {
     return (
       <div className="max-w-sm rounded-lg overflow-hidden shadow-lg bg-white">

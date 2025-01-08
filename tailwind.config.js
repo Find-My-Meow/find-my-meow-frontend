@@ -11,6 +11,7 @@ export default {
         primary: "#FF914D", // Orange
         secondary: "#5D7DAF", // Blue
         neutral: "#191919", // Black
+        black: "#323232"
       },
     },
     fontFamily: {
