@@ -1,4 +1,4 @@
-import Card from "../components/card";
+import Card from "../components/Card";
 
 const FoundCat = () => {
   return (
@@ -11,7 +11,7 @@ const FoundCat = () => {
       </div>
 
       {/* Grid layout */}
-      <div className="grid grid-cols-2 gap-5 pt-4">
+      <div className="grid grid-cols-2 gap-5 pt-4 justify-items-center">
         <Card />
         <Card />
         <Card />

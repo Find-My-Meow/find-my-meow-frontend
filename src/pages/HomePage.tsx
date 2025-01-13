@@ -2,7 +2,7 @@ import DefaultButton from "../components/DefaultButton";
 
 const HomePage = () => {
   return (
-    <div className="max-w-full h-fit">
+    <div className="max-w-full h-fit justify-items-center">
       <div className="flex flex-row gap-20 items-center">
         <div className="">
           <div className="font-paytone text-7xl py-2">
