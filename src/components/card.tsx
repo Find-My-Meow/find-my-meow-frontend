@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from "react";
 
 interface Post {
   title: string;
@@ -11,17 +11,22 @@ interface Post {
   cat_info: string;
   image_path: string | null;
   email_preference: string;
-  gender:string
+  gender: string;
+  post_type: string;
+  date?: string; // Optional date field
 }
 
-const Card = () => {
+interface CardProps {
+  postType: string;
+}
+
+const Card = ({ postType }: CardProps) => {
   const [posts, setPosts] = useState<Post[]>([]);
 
   useEffect(() => {
-    // Fetch posts from the backend API
     const fetchPosts = async () => {
       try {
-        const response = await fetch('http://localhost:8000/posts/');
+        const response = await fetch(`http://localhost:8000/posts/?type=${postType}`);
         if (!response.ok) {
           throw new Error("Failed to fetch posts");
         }
@@ -33,31 +38,60 @@ const Card = () => {
     };
 
     fetchPosts();
-  }, []);
+  }, [postType]);
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2 gap-6 p-6">
       {posts.map((post, index) => (
-        <div key={index} className="max-w-sm rounded-lg overflow-hidden shadow-lg bg-white">
-          {post.image_path ? (
-            <img
-              className="w-full h-48 object-cover"
-              src={`http://127.0.0.1:8000${post.image_path}`} // Prepend base URL for relative paths
-              alt={`${post.title},${post.gender}, ${post.breed}, ${post.color}, ${post.province}, ${post.district}, ${post.sub_district}, ${post.cat_info}`} // Add all data to `alt`
-            />
-          ) : (
-            <div className="w-full h-48 bg-gray-200 flex items-center justify-center">
-              <span className="text-gray-500">No Image</span>
-            </div>
-          )}
-          <div className="p-4">
-            <h2 className="text-xl font-semibold mb-2">{post.title}</h2>
-            <ul className="text-gray-700 text-base mb-4">
-            <li><strong>เพศ:</strong> {post.gender}</li>
-              <li><strong>สี:</strong> {post.color}</li>
-              <li><strong>พันธุ์:</strong> {post.breed}</li>
-              
+        <div
+          key={index}
+          className="rounded-lg bg-[#FFE9DB] shadow-lg flex"
+        >
+          <div className="w-1/3 flex items-center justify-center bg-[#FFE9DB]">
+            {post.image_path ? (
+              <img
+                className="w-20 h-30 object-cover " 
+                src={`http://127.0.0.1:8000${post.image_path}`}
+                alt={post.title}
+              />
+            ) : (
+              <div className="w-20 h-20 flex items-center justify-center bg-gray-300">
+                <span className="text-gray-500">No Image</span>
+              </div>
+            )}
+          </div>
+          <div className="p-4 w-2/3">
+            <h2 className="text-[#FF914D] text-xl font-semibold mb-2">
+              {post.title}
+            </h2>
+            <ul className="text-sm text-gray-800 space-y-1">
+              <li>
+                <strong className="text-[#FF914D]">เพศ:</strong> {post.gender}
+              </li>
+              <li>
+                <strong className="text-[#FF914D]">สี:</strong> {post.color}
+              </li>
+              <li>
+                <strong className="text-[#FF914D]">พันธุ์:</strong>{" "}
+                {post.breed}
+              </li>
+              <li>
+                <strong className="text-[#FF914D]">
+                  {postType === "lostcat"
+                    ? "สถานที่หาย:"
+                    : postType === "foundcat"
+                    ? "สถานที่พบ:"
+                    : "สถานที่:"}
+                </strong>{" "}
+                แขวง{post.sub_district} เขต{post.district} {post.province}
+              </li>
             </ul>
+            {postType === "lostcat" && post.date && (
+              <p className="text-sm text-gray-800 mt-2">
+                <strong className="text-[#FF914D]">วันที่หาย:</strong>{" "}
+                {post.date}
+              </p>
+            )}
           </div>
         </div>
       ))}

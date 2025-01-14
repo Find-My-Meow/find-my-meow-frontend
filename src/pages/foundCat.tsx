@@ -14,7 +14,7 @@ const FoundCat = () => {
   {/* Title at the top center */}
   <div className="flex justify-center items-start pt-20">
         <div className="text-center">
-          <h1 className="text-3xl font-bold">ประกาศหาเจ้าของ</h1>
+          <h1 className="text-3xl font-bold">ประกาศตามหาเจ้าของแมว</h1>
         </div>
       </div>
 
@@ -29,7 +29,7 @@ const FoundCat = () => {
 
   {/* Grid layout */}
   <div className="grid grid-cols-2 gap-5 pt-4">
-    <Card/>
+  <Card postType={'foundcat'} />
   </div>
 </div>
 

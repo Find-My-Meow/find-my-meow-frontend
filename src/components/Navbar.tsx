@@ -1,55 +1,65 @@
+import { useNavigate } from "react-router-dom";
+import DefaultButton from "./DefaultButton";
+
 const Navbar = () => {
-    return (
-      <header className="bg-white text-black shadow-md fixed top-0 left-0 w-full z-10">
-        <div className="container mx-auto flex justify-between items-center py-4 px-6">
-          {/* Logo */}
-          <div className="text-2xl font-bold">
-            <a href="/">MyApp</a>
-          </div>
-  
-          {/* Navigation Links */}
-          <nav className="absolute left-1/2 transform -translate-x-1/2 flex space-x-6">
-            <a
-              href="/"
-              className="text-black hover:text-gray-300 transition duration-300"
-            >
-              หน้าแรก
-            </a>
-            <a
-              href="/lost-cat"
-              className="text-black hover:text-gray-300 transition duration-300"
-            >
-              ประกาศแมวหาย
-            </a>
-            <a
-              href="/found-cat"
-              className="text-black hover:text-gray-300 transition duration-300"
-            >
-              ประกาศหาเจ้าของ
-            </a>
-            <a
-              href="/adopt-cat"
-              className="text-black hover:text-gray-300 transition duration-300"
-            >
-              ประกาศหาบ้านให้แมว
-            </a>
-            <a
-              href="/search-cat"
-              className="text-black hover:text-gray-300 transition duration-300"
-            >
-              ค้นหาแมวหาย
-            </a>
-            <a
-              href="/contact"
-              className="text-black hover:text-gray-300 transition duration-300"
-            >
-              เกี่ยวกับเรา
-            </a>
-          </nav>
+  const navigate = useNavigate();
+
+  return (
+    <header className="bg-white text-black shadow-md fixed top-0 left-0 w-full z-10">
+      <div className="container mx-auto flex items-center justify-between py-4 px-6">
+        {/* Logo */}
+        <div
+          className="flex-shrink-0 cursor-pointer"
+          onClick={() => navigate("/")}
+        >
+          <img src="src/assets/logo.png" alt="logo" className="w-24" />
         </div>
-      </header>
-    );
-  };
-  
-  export default Navbar;
-  
+
+        {/* Navigation Links */}
+        <nav className="hidden md:flex space-x-6">
+          <button
+            onClick={() => navigate("/")}
+            className="text-black hover:text-gray-500 transition duration-300"
+          >
+            หน้าแรก
+          </button>
+          <button
+            onClick={() => navigate("/lost-cat")}
+            className="text-black hover:text-gray-500 transition duration-300"
+          >
+            ประกาศแมวหาย
+          </button>
+          <button
+            onClick={() => navigate("/found-cat")}
+            className="text-black hover:text-gray-500 transition duration-300"
+          >
+            ประกาศหาเจ้าของ
+          </button>
+          <button
+            onClick={() => navigate("/adopt-cat")}
+            className="text-black hover:text-gray-500 transition duration-300"
+          >
+            ประกาศหาบ้านให้แมว
+          </button>
+          <button
+            onClick={() => navigate("/search-cat")}
+            className="text-black hover:text-gray-500 transition duration-300"
+          >
+            ค้นหาแมวหาย
+          </button>
+        </nav>
+
+        {/* Login Button */}
+        <div className="hidden md:block font-semibold">
+          <DefaultButton
+            title="Login/Register"
+            color="primary"
+            onClick={() => navigate("/auth/login")}
+          />
+        </div>
+      </div>
+    </header>
+  );
+};
+
+export default Navbar;
