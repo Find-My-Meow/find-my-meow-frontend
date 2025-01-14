@@ -1,6 +1,13 @@
+import { useNavigate } from "react-router-dom";
 import DefaultButton from "../components/DefaultButton";
 
 const HomePage = () => {
+  const navigate = useNavigate();
+
+  const handleClick = () => {
+    navigate("/lost-cat");
+  };
+
   return (
     <div className="max-w-full h-fit justify-items-center">
       <div className="flex flex-row gap-20 items-center">
@@ -18,7 +25,11 @@ const HomePage = () => {
             และตามหาครอบครัวอบอุ่นแก่แมวจรจัด
           </div>
           <div className="mt-2 font-semibold">
-            <DefaultButton title="ตามหาแมวหาย" color="primary" />
+            <DefaultButton
+              title="ตามหาแมวหาย"
+              color="primary"
+              onClick={handleClick}
+            />
           </div>
         </div>
         <div className="w-[35rem]">

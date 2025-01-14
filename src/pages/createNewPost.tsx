@@ -237,7 +237,7 @@ const NewPost: React.FC = () => {
                                         onChange={handlePostTypeChange}
                                         className="mr-2"
                                     />
-                                    <label htmlFor="adoptcat">ตามหาบ้านแมว</label>
+                                    <label htmlFor="adoptcat">ตามหาบ้านให้แมว</label>
                                 </div>
                             </div>
                         </div>

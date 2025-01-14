@@ -26,7 +26,9 @@ const Card = ({ postType }: CardProps) => {
   useEffect(() => {
     const fetchPosts = async () => {
       try {
-        const response = await fetch(`http://localhost:8000/posts/?type=${postType}`);
+        const response = await fetch(
+          `http://localhost:8000/posts/?type=${postType}`
+        );
         if (!response.ok) {
           throw new Error("Failed to fetch posts");
         }
@@ -41,16 +43,16 @@ const Card = ({ postType }: CardProps) => {
   }, [postType]);
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2 gap-6 p-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2 gap-x-20 gap-y-10">
       {posts.map((post, index) => (
         <div
           key={index}
-          className="rounded-lg bg-[#FFE9DB] shadow-lg flex"
+          className="rounded-lg bg-[#FFE9DB] shadow-lg flex w-[35rem] min-h-[35-rem] h-auto"
         >
-          <div className="w-1/3 flex items-center justify-center bg-[#FFE9DB]">
+          <div className="flex items-center justify-center m-4">
             {post.image_path ? (
               <img
-                className="w-20 h-30 object-cover " 
+                className="w-56 h-56 object-cover"
                 src={`http://127.0.0.1:8000${post.image_path}`}
                 alt={post.title}
               />
@@ -61,7 +63,7 @@ const Card = ({ postType }: CardProps) => {
             )}
           </div>
           <div className="p-4 w-2/3">
-            <h2 className="text-[#FF914D] text-xl font-semibold mb-2">
+            <h2 className="text-[#FF914D] text-2xl font-semibold mb-2 text-center">
               {post.title}
             </h2>
             <ul className="text-sm text-gray-800 space-y-1">
@@ -72,8 +74,7 @@ const Card = ({ postType }: CardProps) => {
                 <strong className="text-[#FF914D]">สี:</strong> {post.color}
               </li>
               <li>
-                <strong className="text-[#FF914D]">พันธุ์:</strong>{" "}
-                {post.breed}
+                <strong className="text-[#FF914D]">พันธุ์:</strong> {post.breed}
               </li>
               <li>
                 <strong className="text-[#FF914D]">
