@@ -3,7 +3,7 @@ import axios from 'axios';
 import { locationData } from '../assets/location';
 
 const NewPost: React.FC = () => {
-    const [title, setTitle] = useState('');
+    const [name, setName] = useState('');
     const [image, setImage] = useState<File | null>(null);
     const [province, setProvince] = useState('');
     const [district, setDistrict] = useState('');
@@ -12,8 +12,8 @@ const NewPost: React.FC = () => {
     const [emailPreference, setEmailPreference] = useState('');
     const [color, setColor] = useState('');
     const [breed, setBreed] = useState('');
-    const [extra_details, setExtraDetails] = useState('');
-    const [cat_info, setCatinfo] = useState('');
+    const [other_information, setOther_information] = useState('');
+    const [catMarking, setCatMarking] = useState('');
     const [postType, setPostType] = useState('');
     const [selectedDate, setSelectedDate] = useState<string | null>(null); // New state for selected date
 
@@ -28,56 +28,67 @@ const NewPost: React.FC = () => {
     const subDistricts = (district: string) => {
         return locationData.filter(item => item.amphoe === district).map(item => item.district);
     };
-    // Function to handle form submission
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
+// Function to handle form submission
+const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const userIdFromStorage = localStorage.getItem("user_id");
+    console.log("user_id from localStorage:", userIdFromStorage);
+    // Create a new FormData object
+    const formData = new FormData();
 
-        const formData = new FormData();
-        formData.append("title", title);
-        formData.append("province", province);
-        formData.append("district", district);
-        formData.append("sub_district", subDistrict);
-        formData.append("gender", gender);
-        formData.append("email_preference", emailPreference);
-        formData.append("color", color);
-        formData.append("breed", breed);
-        formData.append("extra_details", extra_details)
-        formData.append("cat_info", cat_info)
-        formData.append("post_type", postType)
-        formData.append("date", selectedDate || "");
+    // Append the fields to formData
+    formData.append("user_id", String(userIdFromStorage));
+    formData.append("cat_name", name); // Assuming `title` is the cat's name
+    formData.append("gender", gender);
+    formData.append("color", color);
+    formData.append("breed", breed);
+    formData.append("cat_marking", catMarking);
+    formData.append("location", JSON.stringify({
+        province: province,
+        district: district,
+        sub_district: subDistrict,
+    }));
+    formData.append("lost_date", selectedDate || new Date().toISOString());
+    formData.append("other_information", other_information);
+    formData.append("email_notification", emailPreference === "yes" ? "true" : "false");
+    formData.append("post_type", postType);
+
+    // Append the image if it exists
+    if (image) {
+        formData.append("cat_image", image);
+    }
+
+    try {
+        const response = await axios.post(`${import.meta.env.BACKEND_URL}/api/v1/posts/`, formData, {
+            headers: {
+                "Content-Type": "multipart/form-data",
+            },
+        });
+
+        console.log("Response:", response.data);
+        alert("Post created successfully!");
+        
+        // Reset form fields
+        setName("");
+        setProvince("");
+        setDistrict("");
+        setSubDistrict("");
+        setGender("");
+        setEmailPreference("");
+        setColor("");
+        setBreed("");
+        setOther_information("");
+        setCatMarking("");
+        setPostType("");
+        setSelectedDate(null);
+        setImage(null);
+    } catch (error) {
+        console.error("Error creating post:", error);
+        alert("Error creating post. Please try again.");
+    }
+};
 
 
-
-        if (image) {
-            formData.append("image", image);
-        }
-
-        try {
-            const response = await axios.post("http://localhost:8000/create-post/", formData, {
-                headers: { "Content-Type": "multipart/form-data" },
-            });
-
-            console.log("Response:", response.data);
-            alert("Post created successfully!");
-
-            // Reset form after successful submission
-            setTitle("");
-            setImage(null);
-            setProvince("");
-            setDistrict("");
-            setSubDistrict("");
-            setBreed("")
-            setColor('')
-            setEmailPreference("")
-            setGender("")
-            setExtraDetails("")
-            setCatinfo("")
-            setSelectedDate("")
-        } catch (error) {
-            console.error("Error creating post:", error);
-            alert("Error creating post. Please try again.");
-        }
-    };
 
 
     // Handle Image Upload
@@ -121,8 +132,8 @@ const NewPost: React.FC = () => {
 
     const handlePostTypeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { checked, id } = e.target;
-        if (id === 'lostcat') {
-            setPostType(checked ? 'lostcat' : ''); // Set postType to "lostcat"
+        if (id === 'lost') {
+            setPostType(checked ? 'lost' : ''); // Set postType to "lostcat"
             if (checked) {
                 const currentDate = new Date().toISOString().split("T")[0];
                 setSelectedDate(currentDate);
@@ -211,48 +222,48 @@ const NewPost: React.FC = () => {
                             <div className="flex space-x-6">
                                 <div>
                                     <input
-                                        id="lostcat"
+                                        id="lost"
                                         type="checkbox"
                                         value=""
                                         onChange={handlePostTypeChange}
                                         className="mr-2"
                                     />
-                                    <label htmlFor="lostcat">ตามหาแมวหาย</label>
+                                    <label htmlFor="lost">ตามหาแมวหาย</label>
                                 </div>
                                 <div>
                                     <input
-                                        id="foundcat"
+                                        id="found"
                                         type="checkbox"
                                         value=""
                                         onChange={handlePostTypeChange}
                                         className="mr-2"
                                     />
-                                    <label htmlFor="foundcat">ตามหาเจ้าของแมว</label>
+                                    <label htmlFor="found">ตามหาเจ้าของแมว</label>
                                 </div>
                                 <div>
                                     <input
-                                        id="adoptcat"
+                                        id="adopt"
                                         type="checkbox"
                                         value=""
                                         onChange={handlePostTypeChange}
                                         className="mr-2"
                                     />
-                                    <label htmlFor="adoptcat">ตามหาบ้านให้แมว</label>
+                                    <label htmlFor="adopt">ตามหาบ้านให้แมว</label>
                                 </div>
                             </div>
                         </div>
 
                         {/* Content Textarea */}
-                        {postType === 'lostcat' && (
+                        {postType === 'lost' && (
                         <div className="mb-6">
                             <label htmlFor="title" className="text-[#FF914D] block text-lg font-medium mb-2">
                                 ชื่อแมว
                             </label>
                             <input
-                                id="title"
+                                id="name"
                                 type="text"
-                                value={title}
-                                onChange={(e) => setTitle(e.target.value)}
+                                value={name}
+                                onChange={(e) => setName(e.target.value)}
                                 placeholder="ชื่อแมว..."
                                 className="w-fit px-4 py-2 border border-gray-300 rounded-lg"
                                 required
@@ -331,8 +342,8 @@ const NewPost: React.FC = () => {
                             </label>
                             <textarea
                                 id="catInfo"
-                                value={cat_info}
-                                onChange={(e) => setCatinfo(e.target.value)}
+                                value={catMarking}
+                                onChange={(e) => setCatMarking(e.target.value)}
                                 placeholder="ข้อมูลแมว..."
                                 className="w-full px-4 py-2 border border-gray-300 rounded-lg"
                                 required
@@ -406,7 +417,7 @@ const NewPost: React.FC = () => {
                             </div>
                         </div>
                         {/* Conditionally render the selected date if postType is 'lostcat' */}
-                        {postType === 'lostcat' && (
+                        {postType === 'lost' && (
                             <div className="mb-4">
                                 <label className="text-[#FF914D] block text-lg font-medium mb-2">วันที่หาย</label>
                                 <input
@@ -425,8 +436,8 @@ const NewPost: React.FC = () => {
                             </label>
                             <textarea
                                 id="extraDetails"
-                                value={extra_details}
-                                onChange={(e) => setExtraDetails(e.target.value)}
+                                value={other_information}
+                                onChange={(e) => setOther_information(e.target.value)}
                                 placeholder="รายละเอียดเพิ่มเติม..."
                                 className="w-full px-4 py-2 border border-gray-300 rounded-lg"
                                 required

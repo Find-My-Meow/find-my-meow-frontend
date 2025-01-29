@@ -30,7 +30,7 @@ const FoundCat = () => {
 
       {/* Grid layout */}
       <div className="flex justify-center mt-10">
-        <Card postType={"foundcat"} />
+        <Card postType={"found"} />
       </div>
     </div>
   );

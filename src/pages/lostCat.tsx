@@ -31,7 +31,7 @@ const LostCat = () => {
 
       {/* Grid layout */}
       <div className="flex justify-center mt-10">
-        <Card postType={"lostcat"} />
+        <Card postType={"lost"} />
       </div>
     </div>
   );

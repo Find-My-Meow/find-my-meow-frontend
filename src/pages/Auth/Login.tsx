@@ -1,8 +1,19 @@
 import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google";
+import { useState } from "react";
 
 const LoginPage = () => {
+  const [userId, setUserId] = useState<string | null>(null);
+
   const handleLoginSuccess = (response: any) => {
     console.log("Google Login Success:", response);
+
+    const userIdFromToken = response.clientId; 
+
+    setUserId(userIdFromToken);
+
+    localStorage.setItem("user_id", userIdFromToken);
+
+    console.log("User ID from Google login:", userIdFromToken);
   };
 
   const handleLoginError = () => {

@@ -30,7 +30,7 @@ const AdoptCat = () => {
 
       {/* Grid layout */}
       <div className="flex justify-center mt-10">
-        <Card postType={"adoptcat"} />
+        <Card postType={"adopt"} />
       </div>
     </div>
   );

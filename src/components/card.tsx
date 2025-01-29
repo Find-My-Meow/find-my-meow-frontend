@@ -78,16 +78,16 @@ const Card = ({ postType }: CardProps) => {
               </li>
               <li>
                 <strong className="text-[#FF914D]">
-                  {postType === "lostcat"
+                  {postType === "lost"
                     ? "สถานที่หาย:"
-                    : postType === "foundcat"
+                    : postType === "found"
                     ? "สถานที่พบ:"
                     : "สถานที่:"}
                 </strong>{" "}
                 แขวง{post.sub_district} เขต{post.district} {post.province}
               </li>
             </ul>
-            {postType === "lostcat" && post.date && (
+            {postType === "lost" && post.date && (
               <p className="text-sm text-gray-800 mt-2">
                 <strong className="text-[#FF914D]">วันที่หาย:</strong>{" "}
                 {post.date}
