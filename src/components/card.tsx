@@ -9,25 +9,37 @@ interface Post {
   sub_district: string;
   extra_details: string;
   cat_info: string;
-  image_path: string | null;
+  cat_image: {
+    image_id: string,
+    image_path: string
+  },
+  location: {
+    province: string
+    district: string
+    sub_district: string
+  },
+  cat_name?: string
   email_preference: string;
   gender: string;
   post_type: string;
-  date?: string; // Optional date field
+  lost_date?: string;
+  post_id: string
 }
-
 interface CardProps {
   postType: string;
 }
 
+import { useNavigate } from "react-router-dom"; // Import useNavigate
+
 const Card = ({ postType }: CardProps) => {
   const [posts, setPosts] = useState<Post[]>([]);
+  const navigate = useNavigate(); // Initialize navigation
 
   useEffect(() => {
     const fetchPosts = async () => {
       try {
         const response = await fetch(
-          `http://localhost:8000/posts/?type=${postType}`
+          `${import.meta.env.VITE_BACKEND_URL}/api/v1/posts/?post_type=${postType}`
         );
         if (!response.ok) {
           throw new Error("Failed to fetch posts");
@@ -43,17 +55,17 @@ const Card = ({ postType }: CardProps) => {
   }, [postType]);
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2 gap-x-20 gap-y-10">
-      {posts.map((post, index) => (
+<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2 gap-x-20 gap-y-10">
+        {posts.map((post, index) => (
         <div
           key={index}
-          className="rounded-lg bg-[#FFE9DB] shadow-lg flex w-[35rem] min-h-[35-rem] h-auto"
-        >
+          onClick={() => navigate(`/cat-detail/${post.post_id}`)} 
+          className="rounded-lg bg-[#FFE9DB] shadow-lg flex w-[35rem] min-h-[35-rem] h-auto"        >
           <div className="flex items-center justify-center m-4">
-            {post.image_path ? (
+            {post.cat_image.image_path ? (
               <img
                 className="w-56 h-56 object-cover"
-                src={`http://127.0.0.1:8000${post.image_path}`}
+                src={`${import.meta.env.VITE_BACKEND_URL}/api/v1/posts/image/${post.cat_image.image_path}`}
                 alt={post.title}
               />
             ) : (
@@ -64,7 +76,7 @@ const Card = ({ postType }: CardProps) => {
           </div>
           <div className="p-4 w-2/3">
             <h2 className="text-[#FF914D] text-2xl font-semibold mb-2 text-center">
-              {post.title}
+              {post.cat_name}
             </h2>
             <ul className="text-sm text-gray-800 space-y-1">
               <li>
@@ -84,13 +96,18 @@ const Card = ({ postType }: CardProps) => {
                     ? "สถานที่พบ:"
                     : "สถานที่:"}
                 </strong>{" "}
-                แขวง{post.sub_district} เขต{post.district} {post.province}
+                แขวง{post.location.sub_district} เขต{post.location.district}{" "}
+                {post.location.province}
               </li>
             </ul>
-            {postType === "lost" && post.date && (
+            {postType === "lost" && post.lost_date && (
               <p className="text-sm text-gray-800 mt-2">
                 <strong className="text-[#FF914D]">วันที่หาย:</strong>{" "}
-                {post.date}
+                {new Date(post.lost_date).toLocaleDateString("th-TH", {
+                  year: "numeric",
+                  month: "2-digit",
+                  day: "2-digit",
+                })}
               </p>
             )}
           </div>

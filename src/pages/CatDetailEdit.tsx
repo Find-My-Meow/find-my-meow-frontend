@@ -1,8 +1,34 @@
-import React, { useState } from 'react';
-import axios from 'axios';
-import { locationData } from '../assets/location';
+import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+import { locationData } from "../assets/location";
+import axios from "axios";
 
-const NewPost: React.FC = () => {
+interface Post {
+    post_id: string;
+    cat_name?: string;
+    gender: string;
+    color: string;
+    breed: string;
+    cat_marking: string;
+    location: {
+        province: string;
+        district: string;
+        sub_district: string;
+    };
+    lost_date?: string;
+    other_information?: string;
+    cat_image: {
+        image_id: string;
+        image_path: string;
+    };
+    post_type: string
+    email_notification: boolean
+}
+
+const CatDetailEdit = () => {
+    const { post_id } = useParams();
+    const [post, setPost] = useState<Post | null>(null);
+    const [formData, setFormData] = useState<Post | null>(null);
     const [name, setName] = useState('');
     const [image, setImage] = useState<File | null>(null);
     const [province, setProvince] = useState('');
@@ -27,6 +53,39 @@ const NewPost: React.FC = () => {
     const subDistricts = (district: string) => {
         return locationData.filter(item => item.amphoe === district).map(item => item.district);
     };
+
+    useEffect(() => {
+        const fetchPostDetail = async () => {
+            try {
+                const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/v1/posts/${post_id}`);
+                if (!response.ok) {
+                    throw new Error("Failed to fetch post details");
+                }
+                const data = await response.json();
+                setPost(data);
+                setFormData(data);  // Set form data directly
+                setImage(data.image || null);  // Set image if available
+                setProvince(data.location.province || "");
+                setDistrict(data.location.district || "");
+                setSub_District(data.location.sub_district || "");
+                if (data.post_type === "lost" && data.lost_date) {
+                    setSelectedDate(data.lost_date.split("T")[0]); // Format date to YYYY-MM-DD
+                }
+            } catch (error) {
+                console.error("Error fetching post details:", error);
+            }
+        };
+
+        if (post_id) {
+            fetchPostDetail();
+        }
+    }, [post_id]);
+
+
+    if (!formData) {
+        return <div className="text-center mt-10">Loading...</div>;
+    }
+
     const uploadImage = async (file: File) => {
         const formData = new FormData();
         formData.append("file", file);
@@ -94,7 +153,7 @@ const NewPost: React.FC = () => {
         }
 
         try {
-            const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/v1/posts/`, formData, {
+            const response = await axios.put(`${import.meta.env.VITE_BACKEND_URL}/api/v1/posts/${post_id}`, formData, {
                 headers: {
                     "Content-Type": "multipart/form-data",
                 },
@@ -135,6 +194,8 @@ const NewPost: React.FC = () => {
         e.stopPropagation();
     };
 
+
+
     // Handle province change
     const handleProvinceChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         const selectedProvince = e.target.value;
@@ -158,6 +219,7 @@ const NewPost: React.FC = () => {
                 const currentDate = new Date().toISOString().split("T")[0];
                 setSelectedDate(currentDate);
             }
+
         } else {
             setPostType(checked ? id : ''); // Handle other post types
         }
@@ -167,12 +229,15 @@ const NewPost: React.FC = () => {
     const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setSelectedDate(e.target.value);
     };
+    console.log(formData?.email_notification)
 
     return (
         <div className="h-full">
             {/* Title outside the box, centered */}
             <div className="flex justify-center items-center pt-20 mb-8">
-                <h1 className="text-3xl font-bold">สร้างโพสต์ใหม่</h1>
+                <h1 className="text-3xl font-bold">แก้ไขโพสต์</h1>
+                <h1>{formData?.email_notification}</h1>
+
             </div>
 
             <div className="max-w-6xl mx-auto bg-[#FFE9DB] shadow-md rounded-lg flex">
@@ -184,8 +249,29 @@ const NewPost: React.FC = () => {
                         onDragLeave={handleDragLeave}
                         onDrop={handleDrop}
                     >
-                        {!image ? (
+                        {/* Show the existing image if available */}
+                        {formData && formData.cat_image && formData.cat_image.image_path ? (
                             <>
+                                <label htmlFor="fileUpload" className="w-full h-full flex items-center justify-center">
+                                    {/* Show current image */}
+                                    <img
+                                        src={`http://127.0.0.1:8000/api/v1/posts/image/${formData.cat_image.image_path}`}
+                                        alt="Selected"
+                                        className="w-full h-full object-cover rounded-lg cursor-pointer"
+                                    />
+                                    <input
+                                        id="fileUpload"
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={handleImageChange}
+                                        className="hidden"
+                                    />
+                                </label>
+                                <div className="mt-auto p-2 text-black">{formData.cat_image.image_path}</div>
+                            </>
+                        ) : (
+                            <>
+                                {/* If no image, show drag-and-drop option */}
                                 <svg
                                     xmlns="http://www.w3.org/2000/svg"
                                     className="h-10 w-10 text-black mb-2"
@@ -218,28 +304,10 @@ const NewPost: React.FC = () => {
                                     />
                                 </div>
                             </>
-                        ) : (
-                            <>
-                                <label htmlFor="fileUpload" className="w-full h-full flex items-center justify-center">
-                                    <img
-                                        src={URL.createObjectURL(image)}
-                                        alt="Selected"
-                                        className="w-full h-full object-cover rounded-lg cursor-pointer"
-                                    />
-                                    <input
-                                        id="fileUpload"
-                                        type="file"
-                                        accept="image/*"
-                                        onChange={handleImageChange}
-                                        className="hidden"
-                                    />
-                                </label>
-
-                                <div className="mt-auto p-2 text-black">{image.name}</div>
-                            </>
                         )}
                     </div>
                 </div>
+
 
 
                 {/* Right side: Form section */}
@@ -257,6 +325,7 @@ const NewPost: React.FC = () => {
                                         value=""
                                         onChange={handlePostTypeChange}
                                         className="mr-2"
+                                        checked={formData.post_type === 'lost'}
                                     />
                                     <label htmlFor="lost">ตามหาแมวหาย</label>
                                 </div>
@@ -267,6 +336,7 @@ const NewPost: React.FC = () => {
                                         value=""
                                         onChange={handlePostTypeChange}
                                         className="mr-2"
+                                        checked={formData.post_type === 'found'}
                                     />
                                     <label htmlFor="found">ตามหาเจ้าของแมว</label>
                                 </div>
@@ -277,6 +347,8 @@ const NewPost: React.FC = () => {
                                         value=""
                                         onChange={handlePostTypeChange}
                                         className="mr-2"
+                                        checked={formData.post_type === 'adoption'}
+
                                     />
                                     <label htmlFor="ion">ตามหาบ้านให้แมว</label>
                                 </div>
@@ -284,7 +356,7 @@ const NewPost: React.FC = () => {
                         </div>
 
                         {/* Content Textarea */}
-                        {postType === 'lost' && (
+                        {formData.post_type === 'lost' && (
                             <div className="mb-6">
                                 <label htmlFor="title" className="text-[#FF914D] block text-lg font-medium mb-2">
                                     ชื่อแมว
@@ -292,7 +364,7 @@ const NewPost: React.FC = () => {
                                 <input
                                     id="name"
                                     type="text"
-                                    value={name}
+                                    value={name || formData?.cat_name || ''}
                                     onChange={(e) => setName(e.target.value)}
                                     placeholder="ชื่อแมว..."
                                     className="w-fit px-4 py-2 border border-gray-300 rounded-lg"
@@ -313,6 +385,9 @@ const NewPost: React.FC = () => {
                                         value="male"
                                         onChange={(e) => setGender(e.target.checked ? 'male' : '')}
                                         className="mr-2"
+                                        checked={formData.gender === 'male'}
+
+
                                     />
                                     <label htmlFor="male">เพศผู้</label>
                                 </div>
@@ -323,6 +398,8 @@ const NewPost: React.FC = () => {
                                         value="female"
                                         onChange={(e) => setGender(e.target.checked ? 'female' : '')}
                                         className="mr-2"
+                                        checked={formData.gender === 'female'}
+
                                     />
                                     <label htmlFor="female">เพศเมีย</label>
                                 </div>
@@ -341,7 +418,7 @@ const NewPost: React.FC = () => {
                                 <input
                                     id="color"
                                     type="text"
-                                    value={color}
+                                    value={color || formData.color || ''}
                                     onChange={(e) => setColor(e.target.value)}
                                     placeholder="สีแมว..."
                                     className="w-full px-4 py-2 border border-gray-300 rounded-lg"
@@ -357,7 +434,7 @@ const NewPost: React.FC = () => {
                                 <input
                                     id="breed"
                                     type="text"
-                                    value={breed}
+                                    value={breed || formData.breed || ''}
                                     onChange={(e) => setBreed(e.target.value)}
                                     placeholder="สายพันธุ์..."
                                     className="w-full px-4 py-2 border border-gray-300 rounded-lg"
@@ -372,7 +449,7 @@ const NewPost: React.FC = () => {
                             </label>
                             <textarea
                                 id="catInfo"
-                                value={catMarking}
+                                value={catMarking || formData.cat_marking || ''}
                                 onChange={(e) => setCatMarking(e.target.value)}
                                 placeholder="ข้อมูลแมว..."
                                 className="w-full px-4 py-2 border border-gray-300 rounded-lg"
@@ -447,7 +524,7 @@ const NewPost: React.FC = () => {
                             </div>
                         </div>
                         {/* Conditionally render the selected date if postType is 'lostcat' */}
-                        {postType === 'lost' && (
+                        {formData.post_type === 'lost' && (
                             <div className="mb-4">
                                 <label className="text-[#FF914D] block text-lg font-medium mb-2">วันที่หาย</label>
                                 <input
@@ -466,7 +543,7 @@ const NewPost: React.FC = () => {
                             </label>
                             <textarea
                                 id="extraDetails"
-                                value={other_information}
+                                value={other_information || formData.other_information || ''}
                                 onChange={(e) => setOther_information(e.target.value)}
                                 placeholder="รายละเอียดเพิ่มเติม..."
                                 className="w-full px-4 py-2 border border-gray-300 rounded-lg"
@@ -482,9 +559,10 @@ const NewPost: React.FC = () => {
                                 <input
                                     id="email"
                                     type="checkbox"
-                                    value="Email"
-                                    onChange={(e) => setEmailPreference(e.target.checked ? true : false)}
+                                    onChange={(e) => setEmailPreference(e.target.checked)}
                                     className="mr-2"
+                                    checked={formData.email_notification === true}
+
                                 />
                                 <label htmlFor="email">รับ</label>
                             </div>
@@ -506,4 +584,5 @@ const NewPost: React.FC = () => {
     );
 };
 
-export default NewPost;
+
+export default CatDetailEdit;
