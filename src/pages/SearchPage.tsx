@@ -66,9 +66,9 @@ const SearchPage = () => {
     };
 
     return (
-        <div className="h-full">
+        <div className="h-full mb-20">
             {/* Title at the top center */}
-            <div className="flex justify-center items-start">
+            <div className="flex justify-center items-start mb-8">
                 <div className="text-center">
                     <h1 className="text-3xl font-bold">ค้นหาแมวหาย</h1>
                 </div>
@@ -81,13 +81,13 @@ const SearchPage = () => {
                         อัพโหลดรูปภาพแมวของคุณ
                     </label>
                     <div
-                        className="w-full h-64 border-2 border-dashed border-gray-300 flex flex-col justify-center items-center rounded-lg bg-white"
+                        className="border-2 border-dashed border-gray-300 flex flex-col justify-center items-center rounded-lg bg-white"
                         onDragOver={handleDragOver}
                         onDragLeave={handleDragLeave}
                         onDrop={handleDrop}
                     >
                         {!image ? (
-                            <>
+                            <div className='h-[20rem] w-[25rem] justify-items-center content-center'>
                                 <svg
                                     xmlns="http://www.w3.org/2000/svg"
                                     className="h-10 w-10 text-black mb-2"
@@ -119,9 +119,9 @@ const SearchPage = () => {
                                         className="hidden"
                                     />
                                 </div>
-                            </>
+                            </div>
                         ) : (
-                            <>
+                            <div className='w-64 max-h-[20rem] justify-items-center content-center'>
                                 <label htmlFor="fileUpload" className="w-full h-full flex items-center justify-center">
                                     <img
                                         src={URL.createObjectURL(image)}
@@ -138,7 +138,7 @@ const SearchPage = () => {
                                 </label>
 
                                 <div className="mt-auto p-2 text-black">{image.name}</div>
-                            </>
+                            </div>
                         )}
                     </div>
                 </div>

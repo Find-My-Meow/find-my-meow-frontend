@@ -169,23 +169,23 @@ const NewPost: React.FC = () => {
     };
 
     return (
-        <div className="h-full">
+        <div className="h-full mb-20">
             {/* Title outside the box, centered */}
-            <div className="flex justify-center items-center pt-20 mb-8">
+            <div className="flex justify-center items-center mb-8">
                 <h1 className="text-3xl font-bold">สร้างโพสต์ใหม่</h1>
             </div>
 
             <div className="max-w-6xl mx-auto bg-[#FFE9DB] shadow-md rounded-lg flex">
                 {/* Left side: Upload photo section */}
                 <div className="flex justify-start items-center w-1/2 p-6">
-                    <div
-                        className="w-full h-64 border-2 border-dashed border-gray-300 flex flex-col justify-center items-center rounded-lg bg-white"
+                    <div 
+                        className="border-2 border-dashed border-gray-300 flex flex-col justify-center items-center rounded-lg bg-white"
                         onDragOver={handleDragOver}
                         onDragLeave={handleDragLeave}
                         onDrop={handleDrop}
                     >
                         {!image ? (
-                            <>
+                            <div className='h-[30rem] w-[30rem] justify-items-center content-center'>
                                 <svg
                                     xmlns="http://www.w3.org/2000/svg"
                                     className="h-10 w-10 text-black mb-2"
@@ -217,7 +217,7 @@ const NewPost: React.FC = () => {
                                         className="hidden"
                                     />
                                 </div>
-                            </>
+                            </div>
                         ) : (
                             <>
                                 <label htmlFor="fileUpload" className="w-full h-full flex items-center justify-center">
