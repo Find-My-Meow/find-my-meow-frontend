@@ -20,11 +20,7 @@ const Result = () => {
 
       {/* Button aligned to the right */}
       <div className="flex justify-end pt-4 mt-2 font-semibold">
-        <DefaultButton
-          title="ค้นหา"
-          color="primary"
-          onClick={handleClick}
-        />
+        <DefaultButton title="ค้นหา" color="primary" onClick={handleClick} />
       </div>
 
       {/* Grid layout */}

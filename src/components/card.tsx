@@ -10,20 +10,20 @@ interface Post {
   extra_details: string;
   cat_info: string;
   cat_image: {
-    image_id: string,
-    image_path: string
-  },
+    image_id: string;
+    image_path: string;
+  };
   location: {
-    province: string
-    district: string
-    sub_district: string
-  },
-  cat_name?: string
+    province: string;
+    district: string;
+    sub_district: string;
+  };
+  cat_name?: string;
   email_preference: string;
   gender: string;
   post_type: string;
   lost_date?: string;
-  post_id: string
+  post_id: string;
 }
 interface CardProps {
   postType: string;
@@ -39,7 +39,9 @@ const Card = ({ postType }: CardProps) => {
     const fetchPosts = async () => {
       try {
         const response = await fetch(
-          `${import.meta.env.VITE_BACKEND_URL}/api/v1/posts/?post_type=${postType}`
+          `${
+            import.meta.env.VITE_BACKEND_URL
+          }/api/v1/posts/?post_type=${postType}`
         );
         if (!response.ok) {
           throw new Error("Failed to fetch posts");
@@ -55,17 +57,20 @@ const Card = ({ postType }: CardProps) => {
   }, [postType]);
 
   return (
-<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2 gap-x-20 gap-y-10">
-        {posts.map((post, index) => (
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2 gap-x-20 gap-y-10">
+      {posts.map((post, index) => (
         <div
           key={index}
-          onClick={() => navigate(`/cat-detail/${post.post_id}`)} 
-          className="rounded-lg bg-[#FFE9DB] shadow-lg flex w-[35rem] min-h-[35-rem] h-auto"        >
+          onClick={() => navigate(`/cat-detail/${post.post_id}`)}
+          className="rounded-lg bg-[#FFE9DB] shadow-lg flex w-[35rem] min-h-[35-rem] h-auto"
+        >
           <div className="flex items-center justify-center m-4">
             {post.cat_image.image_path ? (
               <img
                 className="w-56 h-56 object-cover"
-                src={`${import.meta.env.VITE_BACKEND_URL}/api/v1/posts/image/${post.cat_image.image_path}`}
+                src={`${import.meta.env.VITE_BACKEND_URL}/api/v1/posts/image/${
+                  post.cat_image.image_path
+                }`}
                 alt={post.title}
               />
             ) : (

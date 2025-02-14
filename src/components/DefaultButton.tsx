@@ -16,10 +16,9 @@ export const DefaultButton: React.FC<DefaultButtonProps> = ({
   onClick,
   children,
   disabled = false,
-  color = 'primary',
+  color = "primary",
   icon,
 }) => {
-
   return (
     <button
       className={`bg-primary text-white rounded-full px-4 py-2`}

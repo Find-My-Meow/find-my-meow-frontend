@@ -29,7 +29,9 @@ const CatDetail = () => {
   useEffect(() => {
     const fetchPostDetail = async () => {
       try {
-        const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/v1/posts/${post_id}`);
+        const response = await fetch(
+          `${import.meta.env.VITE_BACKEND_URL}/api/v1/posts/${post_id}`
+        );
         if (!response.ok) {
           throw new Error("Failed to fetch post details");
         }
@@ -52,9 +54,12 @@ const CatDetail = () => {
   const handleDelete = async () => {
     if (window.confirm("Are you sure you want to delete this post?")) {
       try {
-        const response = await fetch(`http://127.0.0.1:8000/api/v1/posts/${post_id}`, {
-          method: "DELETE",
-        });
+        const response = await fetch(
+          `http://127.0.0.1:8000/api/v1/posts/${post_id}`,
+          {
+            method: "DELETE",
+          }
+        );
         if (!response.ok) {
           throw new Error("Failed to delete post");
         }
@@ -91,13 +96,23 @@ const CatDetail = () => {
             </h1>
 
             <ul className="space-y-2 text-gray-800">
-              <li><strong className="text-[#FF914D]">เพศ:</strong> {post.gender}</li>
-              <li><strong className="text-[#FF914D]">สี:</strong> {post.color}</li>
-              <li><strong className="text-[#FF914D]">พันธุ์:</strong> {post.breed}</li>
-              <li><strong className="text-[#FF914D]">ลักษณะพิเศษ:</strong> {post.cat_marking}</li>
               <li>
-                <strong className="text-[#FF914D]">สถานที่พบ:</strong> 
-                แขวง{post.location.sub_district} เขต{post.location.district} {post.location.province}
+                <strong className="text-[#FF914D]">เพศ:</strong> {post.gender}
+              </li>
+              <li>
+                <strong className="text-[#FF914D]">สี:</strong> {post.color}
+              </li>
+              <li>
+                <strong className="text-[#FF914D]">พันธุ์:</strong> {post.breed}
+              </li>
+              <li>
+                <strong className="text-[#FF914D]">ลักษณะพิเศษ:</strong>{" "}
+                {post.cat_marking}
+              </li>
+              <li>
+                <strong className="text-[#FF914D]">สถานที่พบ:</strong>
+                แขวง{post.location.sub_district} เขต{post.location.district}{" "}
+                {post.location.province}
               </li>
               {post.lost_date && (
                 <li>
@@ -110,7 +125,10 @@ const CatDetail = () => {
                 </li>
               )}
               {post.other_information && (
-                <li><strong className="text-[#FF914D]">ข้อมูลเพิ่มเติม:</strong> {post.other_information}</li>
+                <li>
+                  <strong className="text-[#FF914D]">ข้อมูลเพิ่มเติม:</strong>{" "}
+                  {post.other_information}
+                </li>
               )}
             </ul>
           </div>

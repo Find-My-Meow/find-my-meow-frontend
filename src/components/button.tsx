@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 
 interface ButtonProps {
   label: string;
@@ -6,7 +6,7 @@ interface ButtonProps {
   className?: string;
 }
 
-const Button: React.FC<ButtonProps> = ({ label, onClick, className = '' }) => {
+const Button: React.FC<ButtonProps> = ({ label, onClick, className = "" }) => {
   return (
     <button
       onClick={onClick}
