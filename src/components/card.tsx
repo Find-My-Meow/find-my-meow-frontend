@@ -85,7 +85,7 @@ const Card = ({ postType }: CardProps) => {
             </h2>
             <ul className="text-sm text-gray-800 space-y-1">
               <li>
-                <strong className="text-[#FF914D]">เพศ:</strong> {post.gender}
+              <strong className="text-[#FF914D]">เพศ:</strong> {post.gender === 'female' ? 'เพศเมีย' : 'เพศผู้'}
               </li>
               <li>
                 <strong className="text-[#FF914D]">สี:</strong> {post.color}

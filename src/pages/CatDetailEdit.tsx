@@ -31,6 +31,7 @@ const CatDetailEdit = () => {
   const [formData, setFormData] = useState<Post | null>(null);
   const [name, setName] = useState("");
   const [image, setImage] = useState<File | null>(null);
+  const [existingImage, setExistingImage] = useState<string | null>(null);
   const [province, setProvince] = useState("");
   const [district, setDistrict] = useState("");
   const [sub_district, setSub_District] = useState("");
@@ -75,6 +76,7 @@ const CatDetailEdit = () => {
         setPost(data);
         setFormData(data); // Set form data directly
         setImage(data.image || null); // Set image if available
+        setExistingImage(data.cat_image?.image_path || null); // Store image URL from DB
         setProvince(data.location.province || "");
         setDistrict(data.location.district || "");
         setSub_District(data.location.sub_district || "");
@@ -95,17 +97,20 @@ const CatDetailEdit = () => {
     return <div className="text-center mt-10">Loading...</div>;
   }
 
-  const uploadImage = async (file: File) => {
+  const uploadImage = async (file: File, oldFilename: string | null = null) => {
     const formData = new FormData();
     formData.append("file", file);
 
-    const response = await fetch(
-      `${import.meta.env.VITE_BACKEND_URL}/api/v1/posts/upload_image`,
-      {
-        method: "POST",
-        body: formData,
-      }
-    );
+    const url = oldFilename
+      ? `${import.meta.env.VITE_BACKEND_URL}/api/v1/posts/upload_image/${oldFilename}` // For updating an existing image
+      : `${import.meta.env.VITE_BACKEND_URL}/api/v1/posts/upload_image`; // For uploading a new image
+
+    const method = oldFilename ? "PUT" : "POST"; // PUT for updating, POST for new image
+
+    const response = await fetch(url, {
+      method,
+      body: formData,
+    });
 
     if (!response.ok) {
       console.error("Failed to upload image");
@@ -124,71 +129,78 @@ const CatDetailEdit = () => {
     }
   };
 
+
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const userIdFromStorage = localStorage.getItem("user_id");
-    console.log("user_id from localStorage:", userIdFromStorage);
+    // Prepare updated post data
+    const updatedPost = {
+      ...formData,
+      cat_name: name || formData?.cat_name,
+      gender: gender || formData?.gender,
+      color: color || formData?.color,
+      breed: breed || formData?.breed,
+      cat_marking: catMarking || formData?.cat_marking,
+      location: { province, district, sub_district },
+      lost_date: selectedDate || formData?.lost_date,
+      other_information: other_information || formData?.other_information,
+      email_notification: emailPreference ?? formData?.email_notification,
+      post_type: postType || formData?.post_type,
+    };
 
-    if (!userIdFromStorage) {
-      console.error("No user_id in localStorage");
-      return;
-    }
-
-    const formData = new FormData();
-    formData.append("user_id", String(userIdFromStorage));
-    formData.append("cat_name", name);
-    formData.append("gender", gender);
-    formData.append("color", color);
-    formData.append("breed", breed);
-    formData.append("cat_marking", catMarking);
-    formData.append(
-      "location",
-      JSON.stringify({ province, district, sub_district })
-    );
-    formData.append("lost_date", selectedDate || new Date().toISOString());
-    formData.append("other_information", other_information);
-    formData.append("email_notification", emailPreference ? "true" : "false");
-    formData.append("post_type", postType);
-
+    // Handle image upload
     if (image) {
       try {
-        // Upload image, and get the filename from the response
         const imageFilename = await uploadImage(image);
-        console.log("Received image filename:", imageFilename);
-
         if (imageFilename) {
-          formData.append("cat_image", imageFilename); // Store filename in the post
-        } else {
-          console.error("Image upload failed, no image filename returned");
+          updatedPost.cat_image = { ...formData?.cat_image, image_path: imageFilename };
         }
       } catch (error) {
+        // Handle image upload errors
         console.error("Error uploading image:", error);
+        alert("Error uploading image. Please try again.");
+        return;
       }
     }
 
+    // Log the updated post data to verify
+    console.log("Updated Post:", updatedPost);
+
     try {
-      const response = await axios.put(
-        `${import.meta.env.VITE_BACKEND_URL}/api/v1/posts/${post_id}`,
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
+      // Ensure post_id is correct and URL is as expected
+      const url = `${import.meta.env.VITE_BACKEND_URL}/api/v1/posts/${post_id}`;
+      console.log("Sending request to:", url);
+
+      // Make PUT request
+      const response = await axios.put(url, updatedPost, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
       console.log("Response:", response.data);
-      alert("Post created successfully!");
-    } catch (error) {
-      console.error("Error creating post:", error);
-      alert("Error creating post. Please try again.");
+      alert("Post updated successfully!");
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        // If the error is an AxiosError
+        console.error("Axios Error:", error.response?.data);
+        alert("Error updating post. Please try again.");
+      } else {
+        // Handle any other errors
+        console.error("Unknown Error:", error);
+        alert("Error updating post. Please try again.");
+      }
     }
   };
+
 
   // Handle Image Upload
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       setImage(e.target.files[0]);
+      setExistingImage(null);
+
     }
   };
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
@@ -197,6 +209,8 @@ const CatDetailEdit = () => {
 
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       setImage(e.dataTransfer.files[0]);
+      setExistingImage(null);
+
     }
   };
 
@@ -261,16 +275,14 @@ const CatDetailEdit = () => {
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
           >
-            {/* Show the existing image if available */}
-            {formData && formData.cat_image && formData.cat_image.image_path ? (
+            {image ? (
               <>
                 <label
                   htmlFor="fileUpload"
                   className="w-full h-full flex items-center justify-center"
                 >
-                  {/* Show current image */}
                   <img
-                    src={`http://127.0.0.1:8000/api/v1/posts/image/${formData.cat_image.image_path}`}
+                    src={URL.createObjectURL(image)}
                     alt="Selected"
                     className="w-full h-full object-cover rounded-lg cursor-pointer"
                   />
@@ -282,13 +294,33 @@ const CatDetailEdit = () => {
                     className="hidden"
                   />
                 </label>
-                <div className="mt-auto p-2 text-black">
-                  {formData.cat_image.image_path}
-                </div>
+                <div className="mt-auto p-2 text-black">{image.name}</div>
+
+              </>
+            ) : existingImage ? (
+              <>
+                <label
+                  htmlFor="fileUpload"
+                  className="w-full h-full flex items-center justify-center"
+                >
+                  <img
+                    src={`http://127.0.0.1:8000/api/v1/posts/image/${existingImage}`}
+                    alt="Existing"
+                    className="w-full h-full object-cover rounded-lg cursor-pointer"
+                  />
+                  <input
+                    id="fileUpload"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                    className="hidden"
+                  />
+                </label>
+                <div className="mt-auto p-2 text-black">{existingImage}</div>
+
               </>
             ) : (
               <>
-                {/* If no image, show drag-and-drop option */}
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   className="h-10 w-10 text-black mb-2"
@@ -319,6 +351,7 @@ const CatDetailEdit = () => {
                     onChange={handleImageChange}
                     className="hidden"
                   />
+
                 </div>
               </>
             )}

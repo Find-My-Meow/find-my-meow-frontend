@@ -97,7 +97,7 @@ const CatDetail = () => {
 
             <ul className="space-y-2 text-gray-800">
               <li>
-                <strong className="text-[#FF914D]">เพศ:</strong> {post.gender}
+              <strong className="text-[#FF914D]">เพศ:</strong> {post.gender === 'female' ? 'เพศเมีย' : 'เพศผู้'}
               </li>
               <li>
                 <strong className="text-[#FF914D]">สี:</strong> {post.color}
