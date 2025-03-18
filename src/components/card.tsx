@@ -37,12 +37,28 @@ const Card = ({ postType }: CardProps) => {
 
   useEffect(() => {
     const fetchPosts = async () => {
+      const userId = localStorage.getItem("user_id");
+
+      if (!userId) {
+        console.error("No user ID in localStorage");
+        return;
+      }
+
+      let url = "";
+
+      // Check if the postType is valid, otherwise fetch posts by user_id
+      if (["adoption", "lost", "found"].includes(postType)) {
+        // If postType is valid, fetch posts with the postType filter
+        url = `${import.meta.env.VITE_BACKEND_URL
+          }/api/v1/posts/?post_type=${postType}`;
+      } else {
+        // If postType is invalid, fetch posts by user_id
+        url = `${import.meta.env.VITE_BACKEND_URL
+          }/api/v1/posts/user/${userId}`;
+      }
+
       try {
-        const response = await fetch(
-          `${
-            import.meta.env.VITE_BACKEND_URL
-          }/api/v1/posts/?post_type=${postType}`
-        );
+        const response = await fetch(url);
         if (!response.ok) {
           throw new Error("Failed to fetch posts");
         }
@@ -68,9 +84,8 @@ const Card = ({ postType }: CardProps) => {
             {post.cat_image.image_path ? (
               <img
                 className="w-56 h-56 object-cover"
-                src={`${import.meta.env.VITE_BACKEND_URL}/api/v1/posts/image/${
-                  post.cat_image.image_path
-                }`}
+                src={`${import.meta.env.VITE_BACKEND_URL}/api/v1/posts/image/${post.cat_image.image_path
+                  }`}
                 alt={post.title}
               />
             ) : (
@@ -85,7 +100,7 @@ const Card = ({ postType }: CardProps) => {
             </h2>
             <ul className="text-sm text-gray-800 space-y-1">
               <li>
-              <strong className="text-[#FF914D]">เพศ:</strong> {post.gender === 'female' ? 'เพศเมีย' : 'เพศผู้'}
+                <strong className="text-[#FF914D]">เพศ:</strong> {post.gender === 'female' ? 'เพศเมีย' : 'เพศผู้'}
               </li>
               <li>
                 <strong className="text-[#FF914D]">สี:</strong> {post.color}
@@ -98,8 +113,8 @@ const Card = ({ postType }: CardProps) => {
                   {postType === "lost"
                     ? "สถานที่หาย:"
                     : postType === "found"
-                    ? "สถานที่พบ:"
-                    : "สถานที่:"}
+                      ? "สถานที่พบ:"
+                      : "สถานที่:"}
                 </strong>{" "}
                 แขวง{post.location.sub_district} เขต{post.location.district}{" "}
                 {post.location.province}

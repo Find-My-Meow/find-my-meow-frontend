@@ -1,15 +1,16 @@
 import { Route, Routes, useLocation } from "react-router-dom";
 import HomePage from "../pages/HomePage";
 import Navbar from "../components/Navbar";
-import LostCat from "../pages/lostCat";
-import FoundCat from "../pages/foundCat";
+import LostCat from "../pages/LostCat";
+import FoundCat from "../pages/FoundCat";
 import LoginPage from "../pages/Auth/Login";
-import AdoptCat from "../pages/adoptCat";
-import NewPost from "../pages/createNewPost";
+import AdoptCat from "../pages/AdoptCat";
+import NewPost from "../pages/CreateNewPost";
 import SearchPage from "../pages/SearchPage";
-import Result from "../pages/resultPage";
-import CatDetail from "../pages/catDetail";
-import CatDetailEdit from "../pages/catDetailEdit";
+import Result from "../pages/ResultPage";
+import CatDetail from "../pages/CatDetail";
+import CatDetailEdit from "../pages/CatDetailEdit";
+import UserProfile from "../pages/UserProfile";
 
 const AppRoutes = () => {
   const location = useLocation();
@@ -37,6 +38,8 @@ const AppRoutes = () => {
           <Route path="/result" element={ <Result />}/>
           <Route path="/cat-detail/:post_id" element={ <CatDetail />}/>
           <Route path="/cat-detail/:post_id/edit" element={ <CatDetailEdit />}/>
+          <Route path="/user-profile" element={ <UserProfile />}/>
+
 
         </Routes>
       </div>

@@ -68,7 +68,7 @@ const NewPost: React.FC = () => {
     e.preventDefault();
 
     const userIdFromStorage = localStorage.getItem("user_id");
-    console.log("user_id from localStorage:", userIdFromStorage);
+    const userEmail = JSON.parse(localStorage.getItem("user") || "{}").email;
 
     if (!userIdFromStorage) {
       console.error("No user_id in localStorage");
@@ -86,6 +86,7 @@ const NewPost: React.FC = () => {
       "location",
       JSON.stringify({ province, district, sub_district })
     );
+    formData.append("user_email", userEmail);
     formData.append("lost_date", selectedDate || new Date().toISOString());
     formData.append("other_information", other_information);
     formData.append("email_notification", emailPreference ? "true" : "false");
