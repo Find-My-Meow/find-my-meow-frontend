@@ -11,10 +11,44 @@ const SearchPage = () => {
   const [loading, setLoading] = useState(false);
 
   // Function to navigate to New Post page
-  const handleClick = () => {
-    // Navigate to the /new-post route when the button is clicked
-    navigate("/result");
-  };
+  const handleClick = async () => {
+    setLoading(true);
+
+    const queryParams = new URLSearchParams();
+    if (province) queryParams.append("province", province);
+    if (district) queryParams.append("district", district);
+    if (subDistrict) queryParams.append("sub_district", subDistrict);
+
+    const url = `${import.meta.env.VITE_BACKEND_URL}/api/v1/search/location?${queryParams.toString()}`;
+
+    console.log("🔍 Fetching URL:", decodeURIComponent(url)); 
+
+    try {
+        const response = await fetch(url);
+        console.log("Raw Response:", response);
+        
+        if (!response.ok) {
+            throw new Error("API request failed");
+        }
+
+        const data = await response.json();
+        console.log("Search results:", data);
+
+        if (Array.isArray(data) && data.length === 0) {
+            alert("ไม่พบข้อมูลที่ตรงกับตำแหน่งที่เลือก");
+            return; // Stop execution if no results
+        }
+
+        // Navigate to the result page with search results
+        navigate("/result", { state: { searchResults: data } });
+
+    } catch (error) {
+        console.error("Error fetching search results:", error);
+        alert("ไม่พบข้อมูลที่ตรงกับตำแหน่งที่เลือก");
+    } finally {
+        setLoading(false);
+    }
+};
 
   const provinces = Array.from(
     new Set(locationData.map((item) => item.province))

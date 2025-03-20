@@ -49,6 +49,7 @@ const CatDetailEdit = () => {
   const [other_information, setOther_information] = useState("");
   const [catMarking, setCatMarking] = useState("");
   const [postType, setPostType] = useState("");
+  const [status, setStatus] = useState("");
   const [selectedDate, setSelectedDate] = useState<string | null>(null); // New state for selected date
 
   const provinces = Array.from(
@@ -161,10 +162,9 @@ const CatDetailEdit = () => {
       return;
     }
 
-    // **Step 1: Create FormData**
     const formDataToSend = new FormData();
-    formDataToSend.append("user_id", userId);  // ✅ Ensures user_id is included
-    formDataToSend.append("user_email", userEmail);  // ✅ Ensures user_email is included
+    formDataToSend.append("user_id", userId);
+    formDataToSend.append("user_email", userEmail);
     formDataToSend.append("cat_name", name || formData?.cat_name || "");
     formDataToSend.append("gender", gender || formData?.gender || "");
     formDataToSend.append("color", color || formData?.color || "");
@@ -175,14 +175,15 @@ const CatDetailEdit = () => {
     formDataToSend.append("other_information", other_information || formData?.other_information || "");
     formDataToSend.append("email_notification", emailPreference?.toString() || formData?.email_notification?.toString() || "false");
     formDataToSend.append("post_type", postType || formData?.post_type || "");
+    formDataToSend.append("status", status || "active")
 
-    // **Step 2: Handle Image Upload**
+
     if (image) {
       try {
         const imageData = await uploadImage(image);
         if (imageData) {
           formDataToSend.append("image_id", imageData.image_id);
-          formDataToSend.append("cat_image", image);  // ✅ Send actual image file
+          formDataToSend.append("cat_image", image);
         }
       } catch (error) {
         console.error("Error uploading image:", error);
@@ -190,7 +191,7 @@ const CatDetailEdit = () => {
         return;
       }
     } else if (formData?.cat_image) {
-      formDataToSend.append("image_id", formData.cat_image.image_id); // ✅ Keep existing image
+      formDataToSend.append("image_id", formData.cat_image.image_id);
     }
 
     // **Step 3: Send data to backend**
