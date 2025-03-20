@@ -14,9 +14,11 @@ const Navbar = () => {
   }, []);
   const handleLogout = () => {
     localStorage.removeItem("user");
+    localStorage.removeItem("user_id"); // Remove user_id as well
     setUser(null);
     navigate("/");
   };
+  
 
   return (
     <header className="bg-white text-black shadow-md fixed top-0 left-0 w-full z-10">

@@ -83,7 +83,7 @@ const CatDetail = () => {
         {post.cat_image.image_path && (
           <img
             className="w-64 h-64 object-cover rounded-lg mr-6"
-            src={`http://127.0.0.1:8000/api/v1/posts/image/${post.cat_image.image_path}`}
+            src={`${post.cat_image.image_path}`}
             alt={post.cat_name || "Cat Image"}
           />
         )}

@@ -8,6 +8,8 @@ const SearchPage = () => {
   const [province, setProvince] = useState("");
   const [district, setDistrict] = useState("");
   const [subDistrict, setSubDistrict] = useState("");
+  const [loading, setLoading] = useState(false);
+
   // Function to navigate to New Post page
   const handleClick = () => {
     // Navigate to the /new-post route when the button is clicked

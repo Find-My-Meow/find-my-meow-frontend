@@ -37,24 +37,20 @@ const Card = ({ postType }: CardProps) => {
 
   useEffect(() => {
     const fetchPosts = async () => {
+      let url = "";
       const userId = localStorage.getItem("user_id");
 
-      if (!userId) {
-        console.error("No user ID in localStorage");
-        return;
-      }
-
-      let url = "";
-
-      // Check if the postType is valid, otherwise fetch posts by user_id
+      // If postType is valid → Always fetch public posts
       if (["adoption", "lost", "found"].includes(postType)) {
-        // If postType is valid, fetch posts with the postType filter
-        url = `${import.meta.env.VITE_BACKEND_URL
-          }/api/v1/posts/?post_type=${postType}`;
-      } else {
-        // If postType is invalid, fetch posts by user_id
-        url = `${import.meta.env.VITE_BACKEND_URL
-          }/api/v1/posts/user/${userId}`;
+        url = `${import.meta.env.VITE_BACKEND_URL}/api/v1/posts/?post_type=${postType}`;
+      }
+      // If postType is NOT valid & user is logged in → Fetch user-specific posts
+      else if (userId) {
+        url = `${import.meta.env.VITE_BACKEND_URL}/api/v1/posts/user/${userId}`;
+      }
+      else {
+        console.warn("No valid postType and no user logged in. Skipping fetch.");
+        return;
       }
 
       try {
@@ -72,6 +68,7 @@ const Card = ({ postType }: CardProps) => {
     fetchPosts();
   }, [postType]);
 
+
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2 gap-x-20 gap-y-10">
       {posts.map((post, index) => (
@@ -81,18 +78,18 @@ const Card = ({ postType }: CardProps) => {
           className="rounded-lg bg-[#FFE9DB] shadow-lg flex w-[35rem] min-h-[35-rem] h-auto"
         >
           <div className="flex items-center justify-center m-4">
-            {post.cat_image.image_path ? (
+            {post.cat_image && post.cat_image.image_path ? (
               <img
                 className="w-56 h-56 object-cover"
-                src={`${import.meta.env.VITE_BACKEND_URL}/api/v1/posts/image/${post.cat_image.image_path
-                  }`}
+                src={post.cat_image.image_path}
                 alt={post.title}
               />
             ) : (
-              <div className="w-20 h-20 flex items-center justify-center bg-gray-300">
-                <span className="text-gray-500">No Image</span>
+              <div className="w-56 h-56 bg-gray-200 flex items-center justify-center">
+                <p>No Image</p>
               </div>
             )}
+
           </div>
           <div className="p-4 w-2/3">
             <h2 className="text-[#FF914D] text-2xl font-semibold mb-2 text-center">

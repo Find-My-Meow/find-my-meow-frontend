@@ -4,6 +4,7 @@ import { locationData } from "../assets/location";
 import axios from "axios";
 
 interface Post {
+  user_id: string;
   post_id: string;
   cat_name?: string;
   gender: string;
@@ -23,6 +24,12 @@ interface Post {
   };
   post_type: string;
   email_notification: boolean;
+  user_email: string
+}
+interface Cat_image {
+  image_id: string;
+  stored_filename: string;
+  image_path: string;
 }
 
 const CatDetailEdit = () => {
@@ -31,7 +38,7 @@ const CatDetailEdit = () => {
   const [formData, setFormData] = useState<Post | null>(null);
   const [name, setName] = useState("");
   const [image, setImage] = useState<File | null>(null);
-  const [existingImage, setExistingImage] = useState<string | null>(null);
+  const [existingImage, setExistingImage] = useState<Cat_image | null>(null);
   const [province, setProvince] = useState("");
   const [district, setDistrict] = useState("");
   const [sub_district, setSub_District] = useState("");
@@ -76,7 +83,7 @@ const CatDetailEdit = () => {
         setPost(data);
         setFormData(data); // Set form data directly
         setImage(data.image || null); // Set image if available
-        setExistingImage(data.cat_image?.image_path || null); // Store image URL from DB
+        setExistingImage(data.cat_image && typeof data.cat_image === "object" ? data.cat_image : null);
         setProvince(data.location.province || "");
         setDistrict(data.location.district || "");
         setSub_District(data.location.sub_district || "");
@@ -92,90 +99,108 @@ const CatDetailEdit = () => {
       fetchPostDetail();
     }
   }, [post_id]);
-
   if (!formData) {
     return <div className="text-center mt-10">Loading...</div>;
   }
-
-  const uploadImage = async (file: File, oldFilename: string | null = null) => {
+  const uploadImage = async (file: File) => {
     const formData = new FormData();
     formData.append("file", file);
 
-    const url = oldFilename
-      ? `${import.meta.env.VITE_BACKEND_URL}/api/v1/posts/upload_image/${oldFilename}` // For updating an existing image
-      : `${import.meta.env.VITE_BACKEND_URL}/api/v1/posts/upload_image`; // For uploading a new image
+    try {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/v1/image`, {
+        method: "POST",
+        body: formData,
+      });
 
-    const method = oldFilename ? "PUT" : "POST"; // PUT for updating, POST for new image
+      if (!response.ok) {
+        console.error("Failed to upload image");
+        return null;
+      }
 
-    const response = await fetch(url, {
-      method,
-      body: formData,
-    });
+      const data = await response.json();
+      console.log("Image upload response:", data);
 
-    if (!response.ok) {
-      console.error("Failed to upload image");
-      return null; // Return null if upload fails
-    }
-
-    const data = await response.json();
-    console.log("Image upload response:", data);
-
-    // If image uploaded successfully, return the filename
-    if (data && data.filename) {
-      return data.filename; // Only return filename
-    } else {
-      console.error("No image filename found in response");
-      return null; // Return null if filename is missing
+      if (data?.image_id && data?.stored_filename && data?.image_path) {
+        return {
+          image_id: data.image_id,
+          stored_filename: data.stored_filename,
+          image_path: data.image_path,
+        };
+      } else {
+        console.error("Invalid image response format");
+        return null;
+      }
+    } catch (error) {
+      console.error("Error uploading image:", error);
+      return null;
     }
   };
+
 
 
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Prepare updated post data
-    const updatedPost = {
-      ...formData,
-      cat_name: name || formData?.cat_name,
-      gender: gender || formData?.gender,
-      color: color || formData?.color,
-      breed: breed || formData?.breed,
-      cat_marking: catMarking || formData?.cat_marking,
-      location: { province, district, sub_district },
-      lost_date: selectedDate || formData?.lost_date,
-      other_information: other_information || formData?.other_information,
-      email_notification: emailPreference ?? formData?.email_notification,
-      post_type: postType || formData?.post_type,
-    };
+    const storedUserId = localStorage.getItem("user_id");
+    const parsedUser = JSON.parse(localStorage.getItem("user") || "{}");
 
-    // Handle image upload
+    // Ensure `user_id` is correctly set
+    const userId = storedUserId && storedUserId !== "null" ? storedUserId : formData?.user_id;
+    if (!userId) {
+      console.error("No valid user_id found");
+      alert("Error: Missing user_id. Please log in again.");
+      return;
+    }
+
+    // Ensure `user_email` is correctly set
+    const userEmail = parsedUser.email || formData?.user_email;
+    if (!userEmail) {
+      console.error("No valid user_email found");
+      alert("Error: Missing user email.");
+      return;
+    }
+
+    // **Step 1: Create FormData**
+    const formDataToSend = new FormData();
+    formDataToSend.append("user_id", userId);  // ✅ Ensures user_id is included
+    formDataToSend.append("user_email", userEmail);  // ✅ Ensures user_email is included
+    formDataToSend.append("cat_name", name || formData?.cat_name || "");
+    formDataToSend.append("gender", gender || formData?.gender || "");
+    formDataToSend.append("color", color || formData?.color || "");
+    formDataToSend.append("breed", breed || formData?.breed || "");
+    formDataToSend.append("cat_marking", catMarking || formData?.cat_marking || "");
+    formDataToSend.append("location", JSON.stringify({ province, district, sub_district }));
+    formDataToSend.append("lost_date", selectedDate || formData?.lost_date || "");
+    formDataToSend.append("other_information", other_information || formData?.other_information || "");
+    formDataToSend.append("email_notification", emailPreference?.toString() || formData?.email_notification?.toString() || "false");
+    formDataToSend.append("post_type", postType || formData?.post_type || "");
+
+    // **Step 2: Handle Image Upload**
     if (image) {
       try {
-        const imageFilename = await uploadImage(image);
-        if (imageFilename) {
-          updatedPost.cat_image = { ...formData?.cat_image, image_path: imageFilename };
+        const imageData = await uploadImage(image);
+        if (imageData) {
+          formDataToSend.append("image_id", imageData.image_id);
+          formDataToSend.append("cat_image", image);  // ✅ Send actual image file
         }
       } catch (error) {
-        // Handle image upload errors
         console.error("Error uploading image:", error);
         alert("Error uploading image. Please try again.");
         return;
       }
+    } else if (formData?.cat_image) {
+      formDataToSend.append("image_id", formData.cat_image.image_id); // ✅ Keep existing image
     }
 
-    // Log the updated post data to verify
-    console.log("Updated Post:", updatedPost);
-
+    // **Step 3: Send data to backend**
     try {
-      // Ensure post_id is correct and URL is as expected
       const url = `${import.meta.env.VITE_BACKEND_URL}/api/v1/posts/${post_id}`;
       console.log("Sending request to:", url);
 
-      // Make PUT request
-      const response = await axios.put(url, updatedPost, {
+      const response = await axios.put(url, formDataToSend, {
         headers: {
-          "Content-Type": "application/json",
+          "Content-Type": "multipart/form-data",
         },
       });
 
@@ -183,16 +208,15 @@ const CatDetailEdit = () => {
       alert("Post updated successfully!");
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
-        // If the error is an AxiosError
         console.error("Axios Error:", error.response?.data);
         alert("Error updating post. Please try again.");
       } else {
-        // Handle any other errors
         console.error("Unknown Error:", error);
         alert("Error updating post. Please try again.");
       }
     }
   };
+
 
 
   // Handle Image Upload
@@ -304,7 +328,7 @@ const CatDetailEdit = () => {
                   className="w-full h-full flex items-center justify-center"
                 >
                   <img
-                    src={`http://127.0.0.1:8000/api/v1/posts/image/${existingImage}`}
+                    src={`${existingImage.image_path}`}
                     alt="Existing"
                     className="w-full h-full object-cover rounded-lg cursor-pointer"
                   />
@@ -316,7 +340,7 @@ const CatDetailEdit = () => {
                     className="hidden"
                   />
                 </label>
-                <div className="mt-auto p-2 text-black">{existingImage}</div>
+                <div className="mt-auto p-2 text-black">{existingImage.image_path}</div>
 
               </>
             ) : (
@@ -516,7 +540,6 @@ const CatDetailEdit = () => {
                 onChange={(e) => setCatMarking(e.target.value)}
                 placeholder="ข้อมูลแมว..."
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-                required
               />
             </div>
             <div className="mb-6 flex space-x-4">
@@ -621,7 +644,6 @@ const CatDetailEdit = () => {
                 onChange={(e) => setOther_information(e.target.value)}
                 placeholder="รายละเอียดเพิ่มเติม..."
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-                required
               />
             </div>
             {/* Email Section */}
