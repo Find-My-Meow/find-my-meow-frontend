@@ -57,12 +57,16 @@ const Card = ({ postType }: CardProps) => {
         }
         const data = await response.json();
 
-        const activePosts = data.filter((post: Post) => post.status === "active");
-
-        setPosts(activePosts);
+        if (["adoption", "lost", "found"].includes(postType)) {
+          const activePosts = data.filter((post: Post) => post.status === "active");
+          setPosts(activePosts);
+        } else {
+          setPosts(data);
+        }
       } catch (error) {
         console.error("Error fetching posts:", error);
       }
+
     };
 
     fetchPosts();
