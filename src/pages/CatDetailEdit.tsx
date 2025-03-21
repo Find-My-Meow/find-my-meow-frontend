@@ -4,6 +4,7 @@ import { locationData } from "../assets/location";
 import axios from "axios";
 
 interface Post {
+  user_id: string;
   post_id: string;
   cat_name?: string;
   gender: string;
@@ -23,6 +24,13 @@ interface Post {
   };
   post_type: string;
   email_notification: boolean;
+  user_email: string;
+  status: string
+}
+interface Cat_image {
+  image_id: string;
+  stored_filename: string;
+  image_path: string;
 }
 
 const CatDetailEdit = () => {
@@ -31,6 +39,7 @@ const CatDetailEdit = () => {
   const [formData, setFormData] = useState<Post | null>(null);
   const [name, setName] = useState("");
   const [image, setImage] = useState<File | null>(null);
+  const [existingImage, setExistingImage] = useState<Cat_image | null>(null);
   const [province, setProvince] = useState("");
   const [district, setDistrict] = useState("");
   const [sub_district, setSub_District] = useState("");
@@ -41,7 +50,10 @@ const CatDetailEdit = () => {
   const [other_information, setOther_information] = useState("");
   const [catMarking, setCatMarking] = useState("");
   const [postType, setPostType] = useState("");
+  const [status, setStatus] = useState("");
   const [selectedDate, setSelectedDate] = useState<string | null>(null); // New state for selected date
+  const [userMatch, setUserMatch] = useState<boolean>(false);
+
 
   const provinces = Array.from(
     new Set(locationData.map((item) => item.province))
@@ -75,9 +87,17 @@ const CatDetailEdit = () => {
         setPost(data);
         setFormData(data); // Set form data directly
         setImage(data.image || null); // Set image if available
+        setExistingImage(data.cat_image && typeof data.cat_image === "object" ? data.cat_image : null);
         setProvince(data.location.province || "");
         setDistrict(data.location.district || "");
         setSub_District(data.location.sub_district || "");
+        const storedUserId = localStorage.getItem("user_id");
+        if (data.user_id === storedUserId) {
+          setUserMatch(true);
+        } else {
+          setUserMatch(false);
+        }
+
         if (data.post_type === "lost" && data.lost_date) {
           setSelectedDate(data.lost_date.split("T")[0]); // Format date to YYYY-MM-DD
         }
@@ -90,105 +110,139 @@ const CatDetailEdit = () => {
       fetchPostDetail();
     }
   }, [post_id]);
-
   if (!formData) {
     return <div className="text-center mt-10">Loading...</div>;
   }
-
+  if (!userMatch) {
+    return (
+      <div className="text-center mt-10 text-red-500">
+        คุณไม่มีสิทธิ์ในการแก้ไขโพสต์นี้
+      </div>
+    );
+  }
   const uploadImage = async (file: File) => {
     const formData = new FormData();
     formData.append("file", file);
 
-    const response = await fetch(
-      `${import.meta.env.VITE_BACKEND_URL}/api/v1/posts/upload_image`,
-      {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/v1/image`, {
         method: "POST",
         body: formData,
+      });
+
+      if (!response.ok) {
+        console.error("Failed to upload image");
+        return null;
       }
-    );
 
-    if (!response.ok) {
-      console.error("Failed to upload image");
-      return null; // Return null if upload fails
-    }
+      const data = await response.json();
+      console.log("Image upload response:", data);
 
-    const data = await response.json();
-    console.log("Image upload response:", data);
-
-    // If image uploaded successfully, return the filename
-    if (data && data.filename) {
-      return data.filename; // Only return filename
-    } else {
-      console.error("No image filename found in response");
-      return null; // Return null if filename is missing
+      if (data?.image_id && data?.stored_filename && data?.image_path) {
+        return {
+          image_id: data.image_id,
+          stored_filename: data.stored_filename,
+          image_path: data.image_path,
+        };
+      } else {
+        console.error("Invalid image response format");
+        return null;
+      }
+    } catch (error) {
+      console.error("Error uploading image:", error);
+      return null;
     }
   };
+
+
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const userIdFromStorage = localStorage.getItem("user_id");
-    console.log("user_id from localStorage:", userIdFromStorage);
+    const storedUserId = localStorage.getItem("user_id");
+    const parsedUser = JSON.parse(localStorage.getItem("user") || "{}");
 
-    if (!userIdFromStorage) {
-      console.error("No user_id in localStorage");
+    // Ensure `user_id` is correctly set
+    const userId = storedUserId && storedUserId !== "null" ? storedUserId : formData?.user_id;
+    if (!userId) {
+      console.error("No valid user_id found");
+      alert("Error: Missing user_id. Please log in again.");
       return;
     }
 
-    const formData = new FormData();
-    formData.append("user_id", String(userIdFromStorage));
-    formData.append("cat_name", name);
-    formData.append("gender", gender);
-    formData.append("color", color);
-    formData.append("breed", breed);
-    formData.append("cat_marking", catMarking);
-    formData.append(
-      "location",
-      JSON.stringify({ province, district, sub_district })
-    );
-    formData.append("lost_date", selectedDate || new Date().toISOString());
-    formData.append("other_information", other_information);
-    formData.append("email_notification", emailPreference ? "true" : "false");
-    formData.append("post_type", postType);
+    // Ensure `user_email` is correctly set
+    const userEmail = parsedUser.email || formData?.user_email;
+    if (!userEmail) {
+      console.error("No valid user_email found");
+      alert("Error: Missing user email.");
+      return;
+    }
+
+    const formDataToSend = new FormData();
+    formDataToSend.append("user_id", userId);
+    formDataToSend.append("user_email", userEmail);
+    formDataToSend.append("cat_name", name || formData?.cat_name || "");
+    formDataToSend.append("gender", gender || formData?.gender || "");
+    formDataToSend.append("color", color || formData?.color || "");
+    formDataToSend.append("breed", breed || formData?.breed || "");
+    formDataToSend.append("cat_marking", catMarking || formData?.cat_marking || "");
+    formDataToSend.append("location", JSON.stringify({ province, district, sub_district }));
+    formDataToSend.append("lost_date", selectedDate || formData?.lost_date || "");
+    formDataToSend.append("other_information", other_information || formData?.other_information || "");
+    formDataToSend.append("email_notification", emailPreference?.toString() || formData?.email_notification?.toString() || "false");
+    formDataToSend.append("post_type", postType || formData?.post_type || "");
+    formDataToSend.append("status", status || "active")
+
 
     if (image) {
       try {
-        // Upload image, and get the filename from the response
-        const imageFilename = await uploadImage(image);
-        console.log("Received image filename:", imageFilename);
-
-        if (imageFilename) {
-          formData.append("cat_image", imageFilename); // Store filename in the post
-        } else {
-          console.error("Image upload failed, no image filename returned");
+        const imageData = await uploadImage(image);
+        if (imageData) {
+          formDataToSend.append("image_id", imageData.image_id);
+          formDataToSend.append("cat_image", image);
         }
       } catch (error) {
         console.error("Error uploading image:", error);
+        alert("Error uploading image. Please try again.");
+        return;
       }
+    } else if (formData?.cat_image) {
+      formDataToSend.append("image_id", formData.cat_image.image_id);
     }
 
+    // **Step 3: Send data to backend**
     try {
-      const response = await axios.put(
-        `${import.meta.env.VITE_BACKEND_URL}/api/v1/posts/${post_id}`,
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
+      const url = `${import.meta.env.VITE_BACKEND_URL}/api/v1/posts/${post_id}`;
+      console.log("Sending request to:", url);
+
+      const response = await axios.put(url, formDataToSend, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
       console.log("Response:", response.data);
-      alert("Post created successfully!");
-    } catch (error) {
-      console.error("Error creating post:", error);
-      alert("Error creating post. Please try again.");
+      alert("Post updated successfully!");
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        console.error("Axios Error:", error.response?.data);
+        alert("Error updating post. Please try again.");
+      } else {
+        console.error("Unknown Error:", error);
+        alert("Error updating post. Please try again.");
+      }
     }
   };
+
+
 
   // Handle Image Upload
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       setImage(e.target.files[0]);
+      setExistingImage(null);
+
     }
   };
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
@@ -197,6 +251,8 @@ const CatDetailEdit = () => {
 
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       setImage(e.dataTransfer.files[0]);
+      setExistingImage(null);
+
     }
   };
 
@@ -261,16 +317,14 @@ const CatDetailEdit = () => {
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
           >
-            {/* Show the existing image if available */}
-            {formData && formData.cat_image && formData.cat_image.image_path ? (
+            {image ? (
               <>
                 <label
                   htmlFor="fileUpload"
                   className="w-full h-full flex items-center justify-center"
                 >
-                  {/* Show current image */}
                   <img
-                    src={`http://127.0.0.1:8000/api/v1/posts/image/${formData.cat_image.image_path}`}
+                    src={URL.createObjectURL(image)}
                     alt="Selected"
                     className="w-full h-full object-cover rounded-lg cursor-pointer"
                   />
@@ -282,13 +336,33 @@ const CatDetailEdit = () => {
                     className="hidden"
                   />
                 </label>
-                <div className="mt-auto p-2 text-black">
-                  {formData.cat_image.image_path}
-                </div>
+                <div className="mt-auto p-2 text-black">{image.name}</div>
+
+              </>
+            ) : existingImage ? (
+              <>
+                <label
+                  htmlFor="fileUpload"
+                  className="w-full h-full flex items-center justify-center"
+                >
+                  <img
+                    src={`${existingImage.image_path}`}
+                    alt="Existing"
+                    className="w-full h-full object-cover rounded-lg cursor-pointer"
+                  />
+                  <input
+                    id="fileUpload"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                    className="hidden"
+                  />
+                </label>
+                <div className="mt-auto p-2 text-black">{existingImage.image_path}</div>
+
               </>
             ) : (
               <>
-                {/* If no image, show drag-and-drop option */}
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   className="h-10 w-10 text-black mb-2"
@@ -319,6 +393,7 @@ const CatDetailEdit = () => {
                     onChange={handleImageChange}
                     className="hidden"
                   />
+
                 </div>
               </>
             )}
@@ -483,7 +558,6 @@ const CatDetailEdit = () => {
                 onChange={(e) => setCatMarking(e.target.value)}
                 placeholder="ข้อมูลแมว..."
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-                required
               />
             </div>
             <div className="mb-6 flex space-x-4">
@@ -588,7 +662,6 @@ const CatDetailEdit = () => {
                 onChange={(e) => setOther_information(e.target.value)}
                 placeholder="รายละเอียดเพิ่มเติม..."
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-                required
               />
             </div>
             {/* Email Section */}

@@ -24,37 +24,54 @@ interface Post {
   post_type: string;
   lost_date?: string;
   post_id: string;
+  status: string
 }
 interface CardProps {
   postType: string;
 }
 
-import { useNavigate } from "react-router-dom"; // Import useNavigate
+import { useNavigate } from "react-router-dom";
 
 const Card = ({ postType }: CardProps) => {
   const [posts, setPosts] = useState<Post[]>([]);
-  const navigate = useNavigate(); // Initialize navigation
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchPosts = async () => {
+      let url = "";
+      const userId = localStorage.getItem("user_id");
+
+      if (["adoption", "lost", "found"].includes(postType)) {
+        url = `${import.meta.env.VITE_BACKEND_URL}/api/v1/posts/?post_type=${postType}`;
+      } else if (userId) {
+        url = `${import.meta.env.VITE_BACKEND_URL}/api/v1/posts/user/${userId}`;
+      } else {
+        console.warn("No valid postType and no user logged in. Skipping fetch.");
+        return;
+      }
+
       try {
-        const response = await fetch(
-          `${
-            import.meta.env.VITE_BACKEND_URL
-          }/api/v1/posts/?post_type=${postType}`
-        );
+        const response = await fetch(url);
         if (!response.ok) {
           throw new Error("Failed to fetch posts");
         }
         const data = await response.json();
-        setPosts(data);
+
+        if (["adoption", "lost", "found"].includes(postType)) {
+          const activePosts = data.filter((post: Post) => post.status === "active");
+          setPosts(activePosts);
+        } else {
+          setPosts(data);
+        }
       } catch (error) {
         console.error("Error fetching posts:", error);
       }
+
     };
 
     fetchPosts();
   }, [postType]);
+
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2 gap-x-20 gap-y-10">
@@ -65,19 +82,18 @@ const Card = ({ postType }: CardProps) => {
           className="rounded-lg bg-[#FFE9DB] shadow-lg flex w-[35rem] min-h-[35-rem] h-auto"
         >
           <div className="flex items-center justify-center m-4">
-            {post.cat_image.image_path ? (
+            {post.cat_image && post.cat_image.image_path ? (
               <img
                 className="w-56 h-56 object-cover"
-                src={`${import.meta.env.VITE_BACKEND_URL}/api/v1/posts/image/${
-                  post.cat_image.image_path
-                }`}
+                src={post.cat_image.image_path}
                 alt={post.title}
               />
             ) : (
-              <div className="w-20 h-20 flex items-center justify-center bg-gray-300">
-                <span className="text-gray-500">No Image</span>
+              <div className="w-56 h-56 bg-gray-200 flex items-center justify-center">
+                <p>No Image</p>
               </div>
             )}
+
           </div>
           <div className="p-4 w-2/3">
             <h2 className="text-[#FF914D] text-2xl font-semibold mb-2 text-center">
@@ -85,7 +101,7 @@ const Card = ({ postType }: CardProps) => {
             </h2>
             <ul className="text-sm text-gray-800 space-y-1">
               <li>
-                <strong className="text-[#FF914D]">เพศ:</strong> {post.gender}
+                <strong className="text-[#FF914D]">เพศ:</strong> {post.gender === 'female' ? 'เพศเมีย' : 'เพศผู้'}
               </li>
               <li>
                 <strong className="text-[#FF914D]">สี:</strong> {post.color}
@@ -98,8 +114,8 @@ const Card = ({ postType }: CardProps) => {
                   {postType === "lost"
                     ? "สถานที่หาย:"
                     : postType === "found"
-                    ? "สถานที่พบ:"
-                    : "สถานที่:"}
+                      ? "สถานที่พบ:"
+                      : "สถานที่:"}
                 </strong>{" "}
                 แขวง{post.location.sub_district} เขต{post.location.district}{" "}
                 {post.location.province}

@@ -1,8 +1,24 @@
 import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
 import DefaultButton from "./DefaultButton";
 
 const Navbar = () => {
   const navigate = useNavigate();
+  const [user, setUser] = useState<{ name: string; email: string } | null>(null);
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+  }, []);
+  const handleLogout = () => {
+    localStorage.removeItem("user");
+    localStorage.removeItem("user_id"); // Remove user_id as well
+    setUser(null);
+    navigate("/");
+  };
+  
 
   return (
     <header className="bg-white text-black shadow-md fixed top-0 left-0 w-full z-10">
@@ -49,13 +65,30 @@ const Navbar = () => {
           </button>
         </nav>
 
-        {/* Login Button */}
+        {/* User Info / Login Button */}
         <div className="hidden md:block font-semibold">
-          <DefaultButton
-            title="Login/Register"
-            color="primary"
-            onClick={() => navigate("/auth/login")}
-          />
+          {user ? (
+            <div className="flex items-center space-x-4">
+              <button
+                onClick={() => navigate("/user-profile")}
+                className="text-black font-semibold hover:text-gray-500 transition duration-300"
+              >
+                {user.name}
+              </button>
+              <button
+                onClick={handleLogout}
+                className="text-red-500 hover:text-red-700 transition duration-300"
+              >
+                Logout
+              </button>
+            </div>
+          ) : (
+            <DefaultButton
+              title="Login/Register"
+              color="primary"
+              onClick={() => navigate("/auth/login")}
+            />
+          )}
         </div>
       </div>
     </header>

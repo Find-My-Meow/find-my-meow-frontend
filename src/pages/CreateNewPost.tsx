@@ -39,36 +39,42 @@ const NewPost: React.FC = () => {
     const formData = new FormData();
     formData.append("file", file);
 
-    const response = await fetch(
-      `${import.meta.env.VITE_BACKEND_URL}/api/v1/posts/upload_image`,
-      {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/v1/image`, {
         method: "POST",
         body: formData,
+      });
+
+      if (!response.ok) {
+        console.error("Failed to upload image");
+        return null;
       }
-    );
 
-    if (!response.ok) {
-      console.error("Failed to upload image");
-      return null; // Return null if upload fails
-    }
+      const data = await response.json();
+      console.log("Image upload response:", data);
 
-    const data = await response.json();
-    console.log("Image upload response:", data);
-
-    // If image uploaded successfully, return the filename
-    if (data && data.filename) {
-      return data.filename; // Only return filename
-    } else {
-      console.error("No image filename found in response");
-      return null; // Return null if filename is missing
+      if (data?.image_id && data?.stored_filename && data?.image_path) {
+        return {
+          image_id: data.image_id,
+          stored_filename: data.stored_filename,
+          image_path: data.image_path,
+        };
+      } else {
+        console.error("Invalid image response format");
+        return null;
+      }
+    } catch (error) {
+      console.error("Error uploading image:", error);
+      return null;
     }
   };
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     const userIdFromStorage = localStorage.getItem("user_id");
-    console.log("user_id from localStorage:", userIdFromStorage);
+    const userEmail = JSON.parse(localStorage.getItem("user") || "{}").email;
 
     if (!userIdFromStorage) {
       console.error("No user_id in localStorage");
@@ -86,26 +92,31 @@ const NewPost: React.FC = () => {
       "location",
       JSON.stringify({ province, district, sub_district })
     );
-    formData.append("lost_date", selectedDate || new Date().toISOString());
+    formData.append("user_email", userEmail);
+    const formattedDate = selectedDate || new Date().toISOString().split("T")[0];
+    formData.append("lost_date", formattedDate);
     formData.append("other_information", other_information);
     formData.append("email_notification", emailPreference ? "true" : "false");
     formData.append("post_type", postType);
+    formData.append("status", 'active')
 
     if (image) {
       try {
-        // Upload image, and get the filename from the response
-        const imageFilename = await uploadImage(image);
-        console.log("Received image filename:", imageFilename);
+        const imageData = await uploadImage(image);
+        console.log("Received image data:", imageData);
 
-        if (imageFilename) {
-          formData.append("cat_image", imageFilename); // Store filename in the post
+        if (imageData) {
+          formData.append("cat_image", image); // Send the actual image file
+          formData.append("image_id", imageData.image_id);
+          formData.append("image_path", imageData.image_path);
         } else {
-          console.error("Image upload failed, no image filename returned");
+          console.error("Image upload failed, no valid image data returned");
         }
       } catch (error) {
         console.error("Error uploading image:", error);
       }
     }
+
 
     try {
       const response = await axios.post(
@@ -180,7 +191,8 @@ const NewPost: React.FC = () => {
   };
 
   const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSelectedDate(e.target.value);
+    const date = e.target.value; // Date will be in the format YYYY-MM-DD
+    setSelectedDate(date); // Set it directly
   };
 
   return (
@@ -412,7 +424,6 @@ const NewPost: React.FC = () => {
                 onChange={(e) => setCatMarking(e.target.value)}
                 placeholder="ข้อมูลแมว..."
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-                required
               />
             </div>
             <div className="mb-6 flex space-x-4">
@@ -517,7 +528,6 @@ const NewPost: React.FC = () => {
                 onChange={(e) => setOther_information(e.target.value)}
                 placeholder="รายละเอียดเพิ่มเติม..."
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-                required
               />
             </div>
             {/* Email Section */}

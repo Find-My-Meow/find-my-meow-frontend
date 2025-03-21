@@ -8,11 +8,55 @@ const SearchPage = () => {
   const [province, setProvince] = useState("");
   const [district, setDistrict] = useState("");
   const [subDistrict, setSubDistrict] = useState("");
+  const [loading, setLoading] = useState(false);
+
   // Function to navigate to New Post page
-  const handleClick = () => {
-    // Navigate to the /new-post route when the button is clicked
-    navigate("/result");
+  const handleClick = async () => {
+    setLoading(true);
+
+    const formData = new FormData();
+
+    if (image) {
+      formData.append("file", image);
+    }
+
+    formData.append("province", province || "");
+    formData.append("district", district || "");
+    formData.append("sub_district", subDistrict || "");
+
+    const url = `${import.meta.env.VITE_BACKEND_URL}/api/v1/search/search`;
+
+    console.log("🔍 Fetching URL:", url);
+
+    try {
+      const response = await fetch(url, {
+        method: "POST",
+        body: formData,
+      });
+
+      console.log("Raw Response:", response);
+
+      if (!response.ok) {
+        throw new Error("API request failed");
+      }
+
+      const data = await response.json();
+      console.log("Search results:", data);
+
+      if (Array.isArray(data.posts) && data.posts.length === 0) {
+        alert("ไม่พบข้อมูลที่ตรงกับตำแหน่งที่เลือก");
+        return;
+      }
+      navigate("/result", { state: { searchResults: data.posts } });
+
+    } catch (error) {
+      console.error("Error fetching search results:", error);
+      alert("ไม่พบข้อมูลที่ตรงกับตำแหน่งที่เลือก");
+    } finally {
+      setLoading(false);
+    }
   };
+
 
   const provinces = Array.from(
     new Set(locationData.map((item) => item.province))

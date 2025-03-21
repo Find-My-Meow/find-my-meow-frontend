@@ -1,19 +1,34 @@
 import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google";
-import { useState } from "react";
+import { jwtDecode } from "jwt-decode";
+import { useState, useEffect } from "react";
 
 const LoginPage = () => {
-  const [userId, setUserId] = useState<string | null>(null);
+  const [user, setUser] = useState<{ name: string; email: string } | null>(null);
 
-  const handleLoginSuccess = (response: any) => {
-    console.log("Google Login Success:", response);
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+  }, []);
 
-    const userIdFromToken = response.clientId; 
+  const handleLoginSuccess = (credentialResponse: any) => {
+    console.log("Google Login Success:", credentialResponse);
 
-    setUserId(userIdFromToken);
+    // Decode JWT token
+    const decodedToken: any = jwtDecode(credentialResponse.credential);
 
-    localStorage.setItem("user_id", userIdFromToken);
+    const userInfo = {
+      name: decodedToken.name,
+      email: decodedToken.email,
+    };
+    const userId = decodedToken.sub;
+    // Save only the userId to localStorage
+    localStorage.setItem("user_id", userId);
+    setUser(userInfo);
+    localStorage.setItem("user", JSON.stringify(userInfo));
 
-    console.log("User ID from Google login:", userIdFromToken);
+    console.log("User Info from Google login:", userInfo);
   };
 
   const handleLoginError = () => {
