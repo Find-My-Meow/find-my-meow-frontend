@@ -14,41 +14,49 @@ const SearchPage = () => {
   const handleClick = async () => {
     setLoading(true);
 
-    const queryParams = new URLSearchParams();
-    if (province) queryParams.append("province", province);
-    if (district) queryParams.append("district", district);
-    if (subDistrict) queryParams.append("sub_district", subDistrict);
+    const formData = new FormData();
 
-    const url = `${import.meta.env.VITE_BACKEND_URL}/api/v1/search/location?${queryParams.toString()}`;
+    if (image) {
+      formData.append("file", image);
+    }
 
-    console.log("🔍 Fetching URL:", decodeURIComponent(url)); 
+    formData.append("province", province || "");
+    formData.append("district", district || "");
+    formData.append("sub_district", subDistrict || "");
+
+    const url = `${import.meta.env.VITE_BACKEND_URL}/api/v1/search/search`;
+
+    console.log("🔍 Fetching URL:", url);
 
     try {
-        const response = await fetch(url);
-        console.log("Raw Response:", response);
-        
-        if (!response.ok) {
-            throw new Error("API request failed");
-        }
+      const response = await fetch(url, {
+        method: "POST",
+        body: formData,
+      });
 
-        const data = await response.json();
-        console.log("Search results:", data);
+      console.log("Raw Response:", response);
 
-        if (Array.isArray(data) && data.length === 0) {
-            alert("ไม่พบข้อมูลที่ตรงกับตำแหน่งที่เลือก");
-            return; // Stop execution if no results
-        }
+      if (!response.ok) {
+        throw new Error("API request failed");
+      }
 
-        // Navigate to the result page with search results
-        navigate("/result", { state: { searchResults: data } });
+      const data = await response.json();
+      console.log("Search results:", data);
+
+      if (Array.isArray(data.posts) && data.posts.length === 0) {
+        alert("ไม่พบข้อมูลที่ตรงกับตำแหน่งที่เลือก");
+        return;
+      }
+      navigate("/result", { state: { searchResults: data.posts } });
 
     } catch (error) {
-        console.error("Error fetching search results:", error);
-        alert("ไม่พบข้อมูลที่ตรงกับตำแหน่งที่เลือก");
+      console.error("Error fetching search results:", error);
+      alert("ไม่พบข้อมูลที่ตรงกับตำแหน่งที่เลือก");
     } finally {
-        setLoading(false);
+      setLoading(false);
     }
-};
+  };
+
 
   const provinces = Array.from(
     new Set(locationData.map((item) => item.province))

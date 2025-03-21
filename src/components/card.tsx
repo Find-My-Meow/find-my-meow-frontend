@@ -24,31 +24,28 @@ interface Post {
   post_type: string;
   lost_date?: string;
   post_id: string;
+  status: string
 }
 interface CardProps {
   postType: string;
 }
 
-import { useNavigate } from "react-router-dom"; // Import useNavigate
+import { useNavigate } from "react-router-dom";
 
 const Card = ({ postType }: CardProps) => {
   const [posts, setPosts] = useState<Post[]>([]);
-  const navigate = useNavigate(); // Initialize navigation
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchPosts = async () => {
       let url = "";
       const userId = localStorage.getItem("user_id");
 
-      // If postType is valid → Always fetch public posts
       if (["adoption", "lost", "found"].includes(postType)) {
         url = `${import.meta.env.VITE_BACKEND_URL}/api/v1/posts/?post_type=${postType}`;
-      }
-      // If postType is NOT valid & user is logged in → Fetch user-specific posts
-      else if (userId) {
+      } else if (userId) {
         url = `${import.meta.env.VITE_BACKEND_URL}/api/v1/posts/user/${userId}`;
-      }
-      else {
+      } else {
         console.warn("No valid postType and no user logged in. Skipping fetch.");
         return;
       }
@@ -59,7 +56,10 @@ const Card = ({ postType }: CardProps) => {
           throw new Error("Failed to fetch posts");
         }
         const data = await response.json();
-        setPosts(data);
+
+        const activePosts = data.filter((post: Post) => post.status === "active");
+
+        setPosts(activePosts);
       } catch (error) {
         console.error("Error fetching posts:", error);
       }

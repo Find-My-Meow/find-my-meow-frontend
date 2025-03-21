@@ -24,7 +24,8 @@ interface Post {
   };
   post_type: string;
   email_notification: boolean;
-  user_email: string
+  user_email: string;
+  status: string
 }
 interface Cat_image {
   image_id: string;
@@ -51,6 +52,8 @@ const CatDetailEdit = () => {
   const [postType, setPostType] = useState("");
   const [status, setStatus] = useState("");
   const [selectedDate, setSelectedDate] = useState<string | null>(null); // New state for selected date
+  const [userMatch, setUserMatch] = useState<boolean>(false);
+
 
   const provinces = Array.from(
     new Set(locationData.map((item) => item.province))
@@ -88,6 +91,13 @@ const CatDetailEdit = () => {
         setProvince(data.location.province || "");
         setDistrict(data.location.district || "");
         setSub_District(data.location.sub_district || "");
+        const storedUserId = localStorage.getItem("user_id");
+        if (data.user_id === storedUserId) {
+          setUserMatch(true);
+        } else {
+          setUserMatch(false);
+        }
+
         if (data.post_type === "lost" && data.lost_date) {
           setSelectedDate(data.lost_date.split("T")[0]); // Format date to YYYY-MM-DD
         }
@@ -102,6 +112,13 @@ const CatDetailEdit = () => {
   }, [post_id]);
   if (!formData) {
     return <div className="text-center mt-10">Loading...</div>;
+  }
+  if (!userMatch) {
+    return (
+      <div className="text-center mt-10 text-red-500">
+        คุณไม่มีสิทธิ์ในการแก้ไขโพสต์นี้
+      </div>
+    );
   }
   const uploadImage = async (file: File) => {
     const formData = new FormData();
