@@ -2,61 +2,30 @@ import { useNavigate } from "react-router-dom";
 import { locationData } from "../assets/location";
 
 import { useState } from "react";
+import Swal from "sweetalert2";
 const SearchPage = () => {
   const navigate = useNavigate();
   const [image, setImage] = useState<File | null>(null);
   const [province, setProvince] = useState("");
   const [district, setDistrict] = useState("");
   const [subDistrict, setSubDistrict] = useState("");
-  const [loading, setLoading] = useState(false);
 
   // Function to navigate to New Post page
   const handleClick = async () => {
-    setLoading(true);
+    const noImage = !image;
+    const noLocation = !province && !district && !subDistrict;
 
-    const formData = new FormData();
-
-    if (image) {
-      formData.append("file", image);
-    }
-
-    formData.append("province", province || "");
-    formData.append("district", district || "");
-    formData.append("sub_district", subDistrict || "");
-
-    const url = `${import.meta.env.VITE_BACKEND_URL}/api/v1/search/search`;
-
-    console.log("🔍 Fetching URL:", url);
-
-    try {
-      const response = await fetch(url, {
-        method: "POST",
-        body: formData,
+    if (noImage && noLocation) {
+      Swal.fire({
+        icon: "warning",
+        title: "กรุณาใส่ข้อมูล",
+        text: "โปรดเลือกรูปภาพของแมวหรือระบุตำแหน่งที่ต้องการค้นหา",
       });
-
-      console.log("Raw Response:", response);
-
-      if (!response.ok) {
-        throw new Error("API request failed");
-      }
-
-      const data = await response.json();
-      console.log("Search results:", data);
-
-      if (Array.isArray(data.posts) && data.posts.length === 0) {
-        alert("ไม่พบข้อมูลที่ตรงกับตำแหน่งที่เลือก");
-        return;
-      }
-      navigate("/result", { state: { searchResults: data.posts } });
-
-    } catch (error) {
-      console.error("Error fetching search results:", error);
-      alert("ไม่พบข้อมูลที่ตรงกับตำแหน่งที่เลือก");
-    } finally {
-      setLoading(false);
+      return;
     }
-  };
 
+    navigate("/result", { state: { image, province, district, subDistrict } });
+  };
 
   const provinces = Array.from(
     new Set(locationData.map((item) => item.province))
