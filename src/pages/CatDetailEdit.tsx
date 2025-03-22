@@ -92,6 +92,8 @@ const CatDetailEdit = () => {
         setDistrict(data.location.district || "");
         setSub_District(data.location.sub_district || "");
         setPostType(data.post_type); // ← so the radio shows correctly initially
+        setGender(data.gender)
+        setEmailPreference(data.email_notification)
         const storedUserId = localStorage.getItem("user_id");
         if (data.user_id === storedUserId) {
           setUserMatch(true);
@@ -282,10 +284,6 @@ const CatDetailEdit = () => {
     setSub_District(""); // Reset sub-district
   };
 
-  const handlePostTypeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setPostType(e.target.value);
-  };
-  
   const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSelectedDate(e.target.value);
   };
@@ -402,48 +400,32 @@ const CatDetailEdit = () => {
                 เลือกประเภทโพสต์
               </label>
               <div className="flex space-x-6">
-                <div>
-                  <input
-                    id="lost"
-                    type="radio"
-                    name="postType" 
-                    value="lost" 
-                    onChange={handlePostTypeChange}
-                    className="mr-2"
-                    checked={postType === "lost"} 
+                {["lost", "found", "adoption"].map((type) => (
+                  <div key={type}>
+                    <input
+                      id={type}
+                      type="checkbox"
+                      name="postType"
+                      value={type}
+                      checked={postType === type}
+                      onChange={() => setPostType(postType === type ? "" : type)}
+                      className="mr-2"
                     />
-                  <label htmlFor="lost">ตามหาแมวหาย</label>
-                </div>
-                <div>
-                  <input
-                    id="found"
-                    type="radio"
-                    name="postType" 
-                    value="found"
-                    onChange={handlePostTypeChange}
-                    className="mr-2"
-                    checked={postType === "found"} 
-                    />
-                  <label htmlFor="found">ตามหาเจ้าของแมว</label>
-                </div>
-                <div>
-                  <input
-                    id="adoption"
-                    type="radio"
-                    name="postType" 
-                    value="adoption"
-                    onChange={handlePostTypeChange}
-                    className="mr-2"
-                    checked={postType === "adoption"} 
-                    />
-                  <label htmlFor="adoption">ตามหาบ้านให้แมว</label>
-                </div>
+                    <label htmlFor={type}>
+                      {{
+                        lost: "ตามหาแมวหาย",
+                        found: "ตามหาเจ้าของแมว",
+                        adoption: "ตามหาบ้านให้แมว",
+                      }[type]}
+                    </label>
+                  </div>
+                ))}
               </div>
             </div>
 
 
             {/* Content Textarea */}
-            {formData.post_type === "lost" && (
+            {postType === "lost" && (
               <div className="mb-6">
                 <label
                   htmlFor="title"
@@ -463,23 +445,19 @@ const CatDetailEdit = () => {
               </div>
             )}
 
+
             {/* Gender Section */}
             <div className="mb-4">
-              <label
-                htmlFor="gender"
-                className="text-[#FF914D] block text-lg font-medium mb-2"
-              >
-                เพศ
-              </label>
+              <label className="text-[#FF914D] block text-lg font-medium mb-2">เพศ</label>
               <div className="flex space-x-6">
                 <div>
                   <input
                     id="male"
                     type="checkbox"
                     value="male"
-                    onChange={(e) => setGender(e.target.checked ? "male" : "")}
+                    onChange={() => setGender(gender === "male" ? "" : "male")}
                     className="mr-2"
-                    checked={formData.gender === "male"}
+                    checked={gender === "male"}
                   />
                   <label htmlFor="male">เพศผู้</label>
                 </div>
@@ -488,16 +466,15 @@ const CatDetailEdit = () => {
                     id="female"
                     type="checkbox"
                     value="female"
-                    onChange={(e) =>
-                      setGender(e.target.checked ? "female" : "")
-                    }
+                    onChange={() => setGender(gender === "female" ? "" : "female")}
                     className="mr-2"
-                    checked={formData.gender === "female"}
+                    checked={gender === "female"}
                   />
                   <label htmlFor="female">เพศเมีย</label>
                 </div>
               </div>
             </div>
+
 
             {/* Color and Breed Section (in the same line) */}
             <div className="mb-6 flex space-x-6">
@@ -629,7 +606,7 @@ const CatDetailEdit = () => {
               </div>
             </div>
             {/* Conditionally render the selected date if postType is 'lostcat' */}
-            {formData.post_type === "lost" && (
+            {postType === "lost" && (
               <div className="mb-4">
                 <label className="text-[#FF914D] block text-lg font-medium mb-2">
                   วันที่หาย
@@ -643,6 +620,7 @@ const CatDetailEdit = () => {
                 />
               </div>
             )}
+
 
             {/* extra content Textarea */}
             <div className="mb-6">
@@ -674,7 +652,7 @@ const CatDetailEdit = () => {
                   type="checkbox"
                   onChange={(e) => setEmailPreference(e.target.checked)}
                   className="mr-2"
-                  checked={formData.email_notification === true}
+                  checked={emailPreference === true}
                 />
                 <label htmlFor="email">รับ</label>
               </div>
