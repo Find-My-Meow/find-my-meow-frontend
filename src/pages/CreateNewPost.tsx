@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { locationData } from "../assets/location";
+import Swal from "sweetalert2";
+import { useNavigate } from "react-router-dom";
 
 const NewPost: React.FC = () => {
   const [name, setName] = useState("");
@@ -16,6 +18,7 @@ const NewPost: React.FC = () => {
   const [catMarking, setCatMarking] = useState("");
   const [postType, setPostType] = useState("");
   const [selectedDate, setSelectedDate] = useState<string | null>(null); // New state for selected date
+  const navigate = useNavigate();
 
   const provinces = Array.from(
     new Set(locationData.map((item) => item.province))
@@ -70,9 +73,21 @@ const NewPost: React.FC = () => {
     if (image) {
       formData.append("cat_image", image);
     } else {
-      alert("กรุณาอัปโหลดรูปภาพ");
+      Swal.fire({
+        icon: "warning",
+        title: "กรุณาอัปโหลดรูปภาพ",
+        confirmButtonText: "ตกลง",
+      });
       return;
     }
+
+    Swal.fire({
+      title: "กำลังสร้างโพสต์...",
+      allowOutsideClick: false,
+      didOpen: () => {
+        Swal.showLoading();
+      },
+    });
 
     try {
       const response = await axios.post(
@@ -85,10 +100,29 @@ const NewPost: React.FC = () => {
         }
       );
       console.log("Response:", response.data);
-      alert("Post created successfully!");
+      Swal.fire({
+        icon: "success",
+        title: "สร้างโพสต์สำเร็จ!",
+        showConfirmButton: false,
+        timer: 2000,
+      }).then(() => {
+        if (postType === "lost") {
+          navigate("/lost-cat");
+        } else if (postType === "found") {
+          navigate("/found-cat");
+        } else if (postType === "adoption") {
+          navigate("/adopt-cat");
+        } else {
+          navigate("/");
+        }
+      });
     } catch (error) {
       console.error("Error creating post:", error);
-      alert("Error creating post. Please try again.");
+      Swal.fire({
+        icon: "error",
+        title: "เกิดข้อผิดพลาด",
+        text: "ไม่สามารถสร้างโพสต์ได้ กรุณาลองใหม่อีกครั้ง",
+      });
     }
   };
 
