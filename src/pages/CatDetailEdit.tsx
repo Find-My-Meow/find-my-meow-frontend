@@ -287,7 +287,6 @@ const CatDetailEdit = () => {
   const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSelectedDate(e.target.value);
   };
-  console.log(formData?.email_notification);
 
   return (
     <div className="h-full">

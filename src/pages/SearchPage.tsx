@@ -25,9 +25,6 @@ const SearchPage = () => {
     formData.append("sub_district", subDistrict || "");
 
     const url = `${import.meta.env.VITE_BACKEND_URL}/api/v1/search/search`;
-
-    console.log("🔍 Fetching URL:", url);
-
     try {
       const response = await fetch(url, {
         method: "POST",
