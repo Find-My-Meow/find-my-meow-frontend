@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 
 interface Post {
+  user_id: string;
   post_id: string;
   cat_name?: string;
   gender: string;
@@ -19,10 +20,11 @@ interface Post {
     image_id: string;
     image_path: string;
   };
-  status: string;
-  user_id: string;
+  post_type: string;
+  email_notification: boolean;
+  user_email: string;
+  status: string
 }
-
 const CatDetail = () => {
   const { post_id } = useParams(); // Get post_id from URL
   const [post, setPost] = useState<Post | null>(null);
@@ -135,7 +137,11 @@ const CatDetail = () => {
 
           <div>
             <h1 className="text-[#FF914D] text-3xl font-bold text-center mb-4">
-              {post.cat_name || ""}
+              {post.post_type === "lost" && post.cat_name && (
+                <h1 className="text-[#FF914D] text-3xl font-bold text-center mb-4">
+                  {post.cat_name}
+                </h1>
+              )}
             </h1>
 
             <ul className="space-y-2 text-gray-800">
@@ -157,9 +163,9 @@ const CatDetail = () => {
                 แขวง{post.location.sub_district} เขต{post.location.district}{" "}
                 {post.location.province}
               </li>
-              {post.lost_date && (
+              {post.post_type === "lost" && post.lost_date && (
                 <li>
-                  <strong className="text-[#FF914D]">วันที่พบ:</strong>{" "}
+                  <strong className="text-[#FF914D]">วันที่หาย:</strong>{" "}
                   {new Date(post.lost_date).toLocaleDateString("th-TH", {
                     year: "numeric",
                     month: "2-digit",

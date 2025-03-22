@@ -1,29 +1,27 @@
 import { useEffect, useState } from "react";
 
 interface Post {
-  title: string;
+  user_id: string;
+  post_id: string;
+  cat_name?: string;
+  gender: string;
   color: string;
   breed: string;
-  province: string;
-  district: string;
-  sub_district: string;
-  extra_details: string;
-  cat_info: string;
-  cat_image: {
-    image_id: string;
-    image_path: string;
-  };
+  cat_marking: string;
   location: {
     province: string;
     district: string;
     sub_district: string;
   };
-  cat_name?: string;
-  email_preference: string;
-  gender: string;
-  post_type: string;
   lost_date?: string;
-  post_id: string;
+  other_information?: string;
+  cat_image: {
+    image_id: string;
+    image_path: string;
+  };
+  post_type: string;
+  email_notification: boolean;
+  user_email: string;
   status: string
 }
 interface CardProps {
@@ -86,7 +84,6 @@ const Card = ({ postType }: CardProps) => {
               <img
                 className="w-56 h-56 object-cover"
                 src={post.cat_image.image_path}
-                alt={post.title}
               />
             ) : (
               <div className="w-56 h-56 bg-gray-200 flex items-center justify-center">
@@ -97,7 +94,11 @@ const Card = ({ postType }: CardProps) => {
           </div>
           <div className="p-4 w-2/3">
             <h2 className="text-[#FF914D] text-2xl font-semibold mb-2 text-center">
-              {post.cat_name}
+              {post.post_type === "lost" && post.cat_name && (
+                <h1 className="text-[#FF914D] text-3xl font-bold text-center mb-4">
+                  {post.cat_name}
+                </h1>
+              )}
             </h2>
             <ul className="text-sm text-gray-800 space-y-1">
               <li>

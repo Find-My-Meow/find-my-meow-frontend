@@ -261,13 +261,13 @@ const NewPost: React.FC = () => {
                 <div>
                   <input
                     id="lost"
-                    type="radio"
-                    name="postType"
+                    type="checkbox"
                     value="lost"
                     checked={postType === "lost"}
-                    onChange={(e) => {
-                      setPostType(e.target.value);
-                      if (!selectedDate) {
+                    onChange={() => {
+                      const newValue = postType === "lost" ? "" : "lost";
+                      setPostType(newValue);
+                      if (newValue === "lost" && !selectedDate) {
                         const today = new Date().toISOString().split("T")[0];
                         setSelectedDate(today);
                       }
@@ -279,11 +279,10 @@ const NewPost: React.FC = () => {
                 <div>
                   <input
                     id="found"
-                    type="radio"
-                    name="postType"
+                    type="checkbox"
                     value="found"
                     checked={postType === "found"}
-                    onChange={(e) => setPostType(e.target.value)}
+                    onChange={() => setPostType(postType === "found" ? "" : "found")}
                     className="mr-2"
                   />
                   <label htmlFor="found">ตามหาเจ้าของแมว</label>
@@ -291,17 +290,17 @@ const NewPost: React.FC = () => {
                 <div>
                   <input
                     id="adoption"
-                    type="radio"
-                    name="postType"
+                    type="checkbox"
                     value="adoption"
                     checked={postType === "adoption"}
-                    onChange={(e) => setPostType(e.target.value)}
+                    onChange={() => setPostType(postType === "adoption" ? "" : "adoption")}
                     className="mr-2"
                   />
                   <label htmlFor="adoption">ตามหาบ้านให้แมว</label>
                 </div>
               </div>
             </div>
+
 
             {/* Content Textarea */}
             {postType === "lost" && (
@@ -338,7 +337,10 @@ const NewPost: React.FC = () => {
                     id="male"
                     type="checkbox"
                     value="male"
-                    onChange={(e) => setGender(e.target.checked ? "male" : "")}
+                    checked={gender === "male"}
+                    onChange={() =>
+                      setGender(gender === "male" ? "" : "male")
+                    }
                     className="mr-2"
                   />
                   <label htmlFor="male">เพศผู้</label>
@@ -348,8 +350,9 @@ const NewPost: React.FC = () => {
                     id="female"
                     type="checkbox"
                     value="female"
-                    onChange={(e) =>
-                      setGender(e.target.checked ? "female" : "")
+                    checked={gender === "female"}
+                    onChange={() =>
+                      setGender(gender === "female" ? "" : "female")
                     }
                     className="mr-2"
                   />
@@ -357,6 +360,7 @@ const NewPost: React.FC = () => {
                 </div>
               </div>
             </div>
+
 
             {/* Color and Breed Section (in the same line) */}
             <div className="mb-6 flex space-x-6">
