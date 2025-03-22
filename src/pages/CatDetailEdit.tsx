@@ -91,6 +91,7 @@ const CatDetailEdit = () => {
         setProvince(data.location.province || "");
         setDistrict(data.location.district || "");
         setSub_District(data.location.sub_district || "");
+        setPostType(data.post_type); // ← so the radio shows correctly initially
         const storedUserId = localStorage.getItem("user_id");
         if (data.user_id === storedUserId) {
           setUserMatch(true);
@@ -282,19 +283,9 @@ const CatDetailEdit = () => {
   };
 
   const handlePostTypeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { checked, id } = e.target;
-    if (id === "lost") {
-      setPostType(checked ? "lost" : ""); // Set postType to "lost" if checked
-      if (checked && !selectedDate) {
-        // Only set current date if not already set
-        const currentDate = new Date().toISOString().split("T")[0];
-        setSelectedDate(currentDate);
-      }
-    } else {
-      setPostType(checked ? id : ""); // Handle other post types
-    }
+    setPostType(e.target.value);
   };
-
+  
   const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSelectedDate(e.target.value);
   };
@@ -414,38 +405,42 @@ const CatDetailEdit = () => {
                 <div>
                   <input
                     id="lost"
-                    type="checkbox"
-                    value=""
+                    type="radio"
+                    name="postType" 
+                    value="lost" 
                     onChange={handlePostTypeChange}
                     className="mr-2"
-                    checked={formData.post_type === "lost"}
-                  />
+                    checked={postType === "lost"} 
+                    />
                   <label htmlFor="lost">ตามหาแมวหาย</label>
                 </div>
                 <div>
                   <input
                     id="found"
-                    type="checkbox"
-                    value=""
+                    type="radio"
+                    name="postType" 
+                    value="found"
                     onChange={handlePostTypeChange}
                     className="mr-2"
-                    checked={formData.post_type === "found"}
-                  />
+                    checked={postType === "found"} 
+                    />
                   <label htmlFor="found">ตามหาเจ้าของแมว</label>
                 </div>
                 <div>
                   <input
                     id="adoption"
-                    type="checkbox"
-                    value=""
+                    type="radio"
+                    name="postType" 
+                    value="adoption"
                     onChange={handlePostTypeChange}
                     className="mr-2"
-                    checked={formData.post_type === "adoption"}
-                  />
-                  <label htmlFor="ion">ตามหาบ้านให้แมว</label>
+                    checked={postType === "adoption"} 
+                    />
+                  <label htmlFor="adoption">ตามหาบ้านให้แมว</label>
                 </div>
               </div>
             </div>
+
 
             {/* Content Textarea */}
             {formData.post_type === "lost" && (
@@ -643,6 +638,7 @@ const CatDetailEdit = () => {
                   type="date"
                   value={selectedDate || ""}
                   onChange={handleDateChange}
+                  max={new Date().toISOString().split("T")[0]} // ← Limit to today
                   className="w-full border p-2 rounded-lg"
                 />
               </div>
