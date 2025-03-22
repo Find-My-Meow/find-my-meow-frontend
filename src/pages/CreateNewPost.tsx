@@ -35,40 +35,6 @@ const NewPost: React.FC = () => {
       .filter((item) => item.amphoe === district)
       .map((item) => item.district);
   };
-  const uploadImage = async (file: File) => {
-    const formData = new FormData();
-    formData.append("file", file);
-
-    try {
-      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/v1/image`, {
-        method: "POST",
-        body: formData,
-      });
-
-      if (!response.ok) {
-        console.error("Failed to upload image");
-        return null;
-      }
-
-      const data = await response.json();
-      console.log("Image upload response:", data);
-
-      if (data?.image_id && data?.stored_filename && data?.image_path) {
-        return {
-          image_id: data.image_id,
-          stored_filename: data.stored_filename,
-          image_path: data.image_path,
-        };
-      } else {
-        console.error("Invalid image response format");
-        return null;
-      }
-    } catch (error) {
-      console.error("Error uploading image:", error);
-      return null;
-    }
-  };
-
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -93,30 +59,20 @@ const NewPost: React.FC = () => {
       JSON.stringify({ province, district, sub_district })
     );
     formData.append("user_email", userEmail);
-    const formattedDate = selectedDate || new Date().toISOString().split("T")[0];
+    const formattedDate =
+      selectedDate || new Date().toISOString().split("T")[0];
     formData.append("lost_date", formattedDate);
     formData.append("other_information", other_information);
     formData.append("email_notification", emailPreference ? "true" : "false");
     formData.append("post_type", postType);
-    formData.append("status", 'active')
+    formData.append("status", "active");
 
     if (image) {
-      try {
-        const imageData = await uploadImage(image);
-        console.log("Received image data:", imageData);
-
-        if (imageData) {
-          formData.append("cat_image", image); // Send the actual image file
-          formData.append("image_id", imageData.image_id);
-          formData.append("image_path", imageData.image_path);
-        } else {
-          console.error("Image upload failed, no valid image data returned");
-        }
-      } catch (error) {
-        console.error("Error uploading image:", error);
-      }
+      formData.append("cat_image", image);
+    } else {
+      alert("กรุณาอัปโหลดรูปภาพ");
+      return;
     }
-
 
     try {
       const response = await axios.post(
@@ -312,7 +268,6 @@ const NewPost: React.FC = () => {
                 </div>
               </div>
             </div>
-
 
             {/* Content Textarea */}
             {postType === "lost" && (
@@ -513,7 +468,6 @@ const NewPost: React.FC = () => {
                 />
               </div>
             )}
-
 
             {/* extra content Textarea */}
             <div className="mb-6">
