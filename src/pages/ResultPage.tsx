@@ -3,8 +3,8 @@ import DefaultButton from "../components/DefaultButton";
 import { useEffect, useState } from "react";
 import Swal from "sweetalert2";
 import { ThreeDots } from "react-loader-spinner";
-import { FaRegSadTear } from "react-icons/fa";
 import { MdErrorOutline } from "react-icons/md";
+import { TbCat } from "react-icons/tb";
 
 const Result = () => {
   const navigate = useNavigate();
@@ -173,12 +173,12 @@ const Result = () => {
           ) : (
             // post not found
             <div className="flex flex-col items-center justify-center mt-28 px-4 text-center">
-              <FaRegSadTear className="text-5xl text-[#FF914D] mb-4 animate-bounce" />
-              <p className="text-3xl font-semibold text-[#FF914D] max-w-xl">
+              <TbCat className="text-5xl text-[#FF914D] mb-4" />
+              <p className="text-2xl font-semibold text-[#FF914D] max-w-xl">
                 ไม่พบโพสต์ที่ตรงกับตำแหน่งที่เลือก
               </p>
               <p className="text-md text-gray-600 mt-2">
-                กรุณาลองใหม่อีกครั้ง หรือปรับเงื่อนไขการค้นหา
+                กรุณาลองใหม่อีกครั้ง หรือเปลี่ยนเงื่อนไขการค้นหา
               </p>
             </div>
           )}
