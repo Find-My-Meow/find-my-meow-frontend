@@ -414,8 +414,9 @@ const CatDetailEdit = () => {
                 <div>
                   <input
                     id="lost"
-                    type="checkbox"
-                    value=""
+                    type="radio"
+                    name="postType" 
+                    value="lost" 
                     onChange={handlePostTypeChange}
                     className="mr-2"
                     checked={formData.post_type === "lost"}
@@ -425,8 +426,9 @@ const CatDetailEdit = () => {
                 <div>
                   <input
                     id="found"
-                    type="checkbox"
-                    value=""
+                    type="radio"
+                    name="postType" 
+                    value="found"
                     onChange={handlePostTypeChange}
                     className="mr-2"
                     checked={formData.post_type === "found"}
@@ -436,16 +438,18 @@ const CatDetailEdit = () => {
                 <div>
                   <input
                     id="adoption"
-                    type="checkbox"
-                    value=""
+                    type="radio"
+                    name="postType" 
+                    value="adoption"
                     onChange={handlePostTypeChange}
                     className="mr-2"
                     checked={formData.post_type === "adoption"}
                   />
-                  <label htmlFor="ion">ตามหาบ้านให้แมว</label>
+                  <label htmlFor="adoption">ตามหาบ้านให้แมว</label>
                 </div>
               </div>
             </div>
+
 
             {/* Content Textarea */}
             {formData.post_type === "lost" && (
@@ -643,6 +647,7 @@ const CatDetailEdit = () => {
                   type="date"
                   value={selectedDate || ""}
                   onChange={handleDateChange}
+                  max={new Date().toISOString().split("T")[0]} // ← Limit to today
                   className="w-full border p-2 rounded-lg"
                 />
               </div>

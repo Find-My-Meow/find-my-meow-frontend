@@ -285,9 +285,17 @@ const NewPost: React.FC = () => {
                 <div>
                   <input
                     id="lost"
-                    type="checkbox"
-                    value=""
-                    onChange={handlePostTypeChange}
+                    type="radio"
+                    name="postType"
+                    value="lost"
+                    checked={postType === "lost"}
+                    onChange={(e) => {
+                      setPostType(e.target.value);
+                      if (!selectedDate) {
+                        const today = new Date().toISOString().split("T")[0];
+                        setSelectedDate(today);
+                      }
+                    }}
                     className="mr-2"
                   />
                   <label htmlFor="lost">ตามหาแมวหาย</label>
@@ -295,9 +303,11 @@ const NewPost: React.FC = () => {
                 <div>
                   <input
                     id="found"
-                    type="checkbox"
-                    value=""
-                    onChange={handlePostTypeChange}
+                    type="radio"
+                    name="postType"
+                    value="found"
+                    checked={postType === "found"}
+                    onChange={(e) => setPostType(e.target.value)}
                     className="mr-2"
                   />
                   <label htmlFor="found">ตามหาเจ้าของแมว</label>
@@ -305,15 +315,18 @@ const NewPost: React.FC = () => {
                 <div>
                   <input
                     id="adoption"
-                    type="checkbox"
-                    value=""
-                    onChange={handlePostTypeChange}
+                    type="radio"
+                    name="postType"
+                    value="adoption"
+                    checked={postType === "adoption"}
+                    onChange={(e) => setPostType(e.target.value)}
                     className="mr-2"
                   />
-                  <label htmlFor="ion">ตามหาบ้านให้แมว</label>
+                  <label htmlFor="adoption">ตามหาบ้านให้แมว</label>
                 </div>
               </div>
             </div>
+
 
             {/* Content Textarea */}
             {postType === "lost" && (
@@ -509,10 +522,12 @@ const NewPost: React.FC = () => {
                   type="date"
                   value={selectedDate || ""}
                   onChange={handleDateChange}
+                  max={new Date().toISOString().split("T")[0]} // ← Limit to today
                   className="w-full border p-2 rounded-lg"
                 />
               </div>
             )}
+
 
             {/* extra content Textarea */}
             <div className="mb-6">
