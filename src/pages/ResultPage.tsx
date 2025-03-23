@@ -1,18 +1,19 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import DefaultButton from "../components/DefaultButton";
 import { useEffect, useState } from "react";
-import Swal from "sweetalert2";
 import { ThreeDots } from "react-loader-spinner";
 import { MdErrorOutline } from "react-icons/md";
 import { TbCat } from "react-icons/tb";
 
 const Result = () => {
   const navigate = useNavigate();
-  const location = useLocation();
-  const { image, province, district, subDistrict } = location.state || {};
+  const routerLocation = useLocation();
+  const { image, location, radius } = routerLocation.state || {};
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  console.log(routerLocation.state);
 
   useEffect(() => {
     const searchCats = async () => {
@@ -22,9 +23,11 @@ const Result = () => {
         formData.append("file", image);
       }
 
-      formData.append("province", province || "");
-      formData.append("district", district || "");
-      formData.append("sub_district", subDistrict || "");
+      if (location) {
+        formData.append("latitude", location.lat);
+        formData.append("longitude", location.lng);
+        formData.append("radius_km", radius || 1);
+      }
 
       try {
         const response = await fetch(
@@ -38,15 +41,20 @@ const Result = () => {
         const data = await response.json();
 
         if (!response.ok) {
-          throw new Error(data.detail || "Search failed");
+          if (
+            response.status === 400 &&
+            data.detail === "No cat detected in image."
+          ) {
+            setError("ไม่พบแมวในรูปภาพ กรุณาเลือกรูปใหม่ที่เห็นแมวชัดเจน");
+          } else {
+            throw new Error(data.detail || "Search failed");
+          }
+          return;
         }
 
         if (Array.isArray(data.results) && data.results.length === 0) {
-          // Swal.fire({
-          //   icon: "info",
-          //   title: "ไม่พบข้อมูล",
-          //   text: "ไม่พบแมวที่ตรงกับตำแหน่งหรือรูปภาพที่เลือก",
-          // });
+          // No results but valid image/location
+          setResults([]);
         } else {
           setResults(data.results);
         }
@@ -59,7 +67,7 @@ const Result = () => {
     };
 
     searchCats();
-  }, [image, province, district, subDistrict]);
+  }, [image, location]);
 
   return (
     <div className="h-full px-6 pb-20">
@@ -141,7 +149,7 @@ const Result = () => {
                         {post.color}
                       </li>
                       <li>
-                        <strong className="text-[#FF914D]">พันธุ์:</strong>{" "}
+                        <strong className="text-[#FF914D]">สายพันธุ์:</strong>{" "}
                         {post.breed}
                       </li>
                       <li>

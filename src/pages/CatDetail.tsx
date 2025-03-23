@@ -1,3 +1,4 @@
+import { GoogleMap, Marker } from "@react-google-maps/api";
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 
@@ -10,9 +11,8 @@ interface Post {
   breed: string;
   cat_marking: string;
   location: {
-    province: string;
-    district: string;
-    sub_district: string;
+    latitude: number;
+    longitude: number;
   };
   lost_date?: string;
   other_information?: string;
@@ -23,7 +23,7 @@ interface Post {
   post_type: string;
   email_notification: boolean;
   user_email: string;
-  status: string
+  status: string;
 }
 const CatDetail = () => {
   const { post_id } = useParams(); // Get post_id from URL
@@ -31,7 +31,6 @@ const CatDetail = () => {
   const navigate = useNavigate();
   const currentUserId = localStorage.getItem("user_id");
   const isOwner = post?.user_id === currentUserId;
-
 
   useEffect(() => {
     const fetchPostDetail = async () => {
@@ -110,59 +109,61 @@ const CatDetail = () => {
   };
 
   return (
-    <div className="h-full flex justify-center mt-10">
-      <div className="rounded-lg bg-[#FFE9DB] shadow-lg p-6 w-[50rem] flex">
-        {/* Image on the left */}
-        {post.cat_image.image_path && (
-          <img
-            className="w-64 h-64 object-cover rounded-lg mr-6"
-            src={`${post.cat_image.image_path}`}
-            alt={post.cat_name || "Cat Image"}
-          />
+    <div className="flex items-center justify-center mb-10">
+      <div className="w-full max-w-5xl bg-[#FFE9DB] shadow-xl rounded-2xl p-6 relative">
+        {/* Close Button */}
+        {isOwner && (
+          <button
+            className="absolute top-4 right-4 px-4 py-2 bg-yellow-400 text-white font-semibold rounded-lg hover:bg-yellow-500 transition"
+            onClick={handleClosePost}
+          >
+            ปิดโพสต์
+          </button>
         )}
 
-        {/* Information & Buttons on the right */}
-        <div className="w-full flex flex-col justify-between">
-          {/* Top-right Close Post Button */}
-          {isOwner && (
-            <div className="flex justify-end mb-2">
-              <button
-                className="px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition"
-                onClick={handleClosePost}
-              >
-                ปิดโพสต์
-              </button>
-            </div>
-          )}
+        {/* Main Content */}
+        <div className="md:flex gap-6 mt-10 rounded-xl overflow-hidden">
+          {/* Left: Image */}
+          <div className="md:w-1/2 w-full flex items-center justify-center p-4 bg-white rounded-xl">
+            {post.cat_image.image_path && (
+              <img
+                src={post.cat_image.image_path}
+                alt={post.cat_name || "Cat Image"}
+                className="max-h-[26rem] w-full object-contain"
+              />
+            )}
+          </div>
 
-          <div>
-            <h1 className="text-[#FF914D] text-3xl font-bold text-center mb-4">
-              {post.post_type === "lost" && post.cat_name && (
-                <h1 className="text-[#FF914D] text-3xl font-bold text-center mb-4">
-                  {post.cat_name}
-                </h1>
-              )}
-            </h1>
-
-            <ul className="space-y-2 text-gray-800">
+          {/* Right: Info */}
+          <div className="flex-1 flex flex-col justify-between">
+            {/* Cat Name (Title) */}
+            {post.post_type === "lost" && post.cat_name && (
+              <h1 className="text-3xl font-bold text-center text-[#FF914D] mb-3">
+                {post.cat_name}
+              </h1>
+            )}
+            {/* Cat Info */}
+            <ul className="space-y-2 text-gray-800 text-lg">
               <li>
-                <strong className="text-[#FF914D]">เพศ:</strong> {post.gender === 'female' ? 'เพศเมีย' : 'เพศผู้'}
+                <strong className="text-[#FF914D]">เพศ:</strong>{" "}
+                {post.gender === "female" ? "เพศเมีย" : "เพศผู้"}
               </li>
               <li>
                 <strong className="text-[#FF914D]">สี:</strong> {post.color}
               </li>
               <li>
-                <strong className="text-[#FF914D]">พันธุ์:</strong> {post.breed}
+                <strong className="text-[#FF914D]">สายพันธุ์:</strong>{" "}
+                {post.breed}
               </li>
               <li>
-                <strong className="text-[#FF914D]">ลักษณะพิเศษ:</strong>{" "}
-                {post.cat_marking}
+                <strong className="text-[#FF914D]">จุดสังเกต:</strong>{" "}
+                {post.cat_marking || "-"}
               </li>
               <li>
-                <strong className="text-[#FF914D]">สถานที่พบ:</strong>
-                แขวง{post.location.sub_district} เขต{post.location.district}{" "}
-                {post.location.province}
+                <strong className="text-[#FF914D]">ข้อมูลเพิ่มเติม:</strong>{" "}
+                {post.other_information || "-"}
               </li>
+
               {post.post_type === "lost" && post.lost_date && (
                 <li>
                   <strong className="text-[#FF914D]">วันที่หาย:</strong>{" "}
@@ -173,35 +174,56 @@ const CatDetail = () => {
                   })}
                 </li>
               )}
-              {post.other_information && (
-                <li>
-                  <strong className="text-[#FF914D]">ข้อมูลเพิ่มเติม:</strong>{" "}
-                  {post.other_information}
-                </li>
-              )}
             </ul>
+
+            {/* Map */}
+            {post.location?.latitude && post.location?.longitude && (
+              <div className="mt-2">
+                <h2 className="text-lg font-bold text-[#FF914D] mb-2">
+                  ตำแหน่งที่พบ
+                </h2>
+                <div className="w-full h-60 rounded-lg overflow-hidden">
+                  <GoogleMap
+                    mapContainerStyle={{ width: "100%", height: "100%" }}
+                    center={{
+                      lat: Number(post.location.latitude),
+                      lng: Number(post.location.longitude),
+                    }}
+                    zoom={15}
+                    options={{
+                      disableDefaultUI: true,
+                      zoomControl: true,
+                    }}
+                  >
+                    <Marker
+                      position={{
+                        lat: Number(post.location.latitude),
+                        lng: Number(post.location.longitude),
+                      }}
+                    />
+                  </GoogleMap>
+                </div>
+              </div>
+            )}
           </div>
-
-          {/* Edit & Delete Buttons */}
-          {/* Bottom Edit/Delete Buttons */}
-          {isOwner && (
-            <div className="flex justify-end gap-4 mt-4">
-              <button
-                className="px-4 py-2 bg-[#FF914D] text-white rounded-lg hover:bg-[#4DB5FF] transition"
-                onClick={handleEdit}
-              >
-                แก้ไข
-              </button>
-              <button
-                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:[#FF5439] transition"
-                onClick={handleDelete}
-              >
-                ลบ
-              </button>
-            </div>
-          )}
-
         </div>
+        {/* Buttons */}
+        {isOwner && (
+          <div className="flex justify-end gap-4 mt-6">
+            <button
+              className="px-4 py-2 bg-[#FF914D] text-white font-semibold rounded-lg hover:bg-orange-500 transition"
+              onClick={handleEdit}
+            >
+              แก้ไข
+            </button>
+            <button
+              className="px-4 py-2 bg-red-500 text-white font-semibold rounded-lg hover:bg-red-600 transition"
+              onClick={handleDelete}
+            >
+              ลบ
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
