@@ -1,9 +1,10 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import DefaultButton from "../components/DefaultButton";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ThreeDots } from "react-loader-spinner";
 import { MdErrorOutline } from "react-icons/md";
 import { TbCat } from "react-icons/tb";
+import Swal from "sweetalert2";
 
 const Result = () => {
   const navigate = useNavigate();
@@ -12,10 +13,20 @@ const Result = () => {
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [noCatDetected, setNoCatDetected] = useState(false);
+  const [selectedType, setSelectedType] = useState<string>("all");
+  const searchCalled = useRef(false);
 
-  console.log(routerLocation.state);
+  const filteredResults =
+    selectedType === "all"
+      ? results
+      : results.filter((post: any) => post.post_type === selectedType);
 
   useEffect(() => {
+    // prevent double call search api
+    if (searchCalled.current) return;
+    searchCalled.current = true;
+
     const searchCats = async () => {
       const formData = new FormData();
 
@@ -41,15 +52,39 @@ const Result = () => {
         const data = await response.json();
 
         if (!response.ok) {
-          if (
-            response.status === 400 &&
-            data.detail === "No cat detected in image."
-          ) {
-            setError("ไม่พบแมวในรูปภาพ กรุณาเลือกรูปใหม่ที่เห็นแมวชัดเจน");
-          } else {
-            throw new Error(data.detail || "Search failed");
+          if (response.status === 400) {
+            if (
+              typeof data.detail === "string" &&
+              data.detail === "No cat detected in image."
+            ) {
+              setNoCatDetected(true);
+            } else if (
+              typeof data.detail === "object" &&
+              data.detail.message?.includes("Image is too small")
+            ) {
+              Swal.fire({
+                icon: "warning",
+                title: "รูปภาพมีขนาดเล็กเกินไป",
+                text: "กรุณาเลือกรูปที่มีความละเอียดสูงกว่านี้",
+              });
+              setError("ไม่สามารถค้นหาได้ กรุณาลองใหม่อีกครั้ง");
+            } else {
+              throw new Error(
+                data.detail?.message || data.detail || "Search failed"
+              );
+            }
+            return;
           }
-          return;
+
+          throw new Error("Search failed");
+        }
+
+        if (data.image_blur_warning) {
+          Swal.fire({
+            icon: "warning",
+            title: "รูปภาพเบลอ",
+            text: "ระบบตรวจพบว่าภาพมีความเบลอ ซึ่งอาจกระทบกับผลการค้นหา ลองใช้ภาพอื่นเพื่อผลลัพธ์ที่แม่นยำยิ่งขึ้น",
+          });
         }
 
         if (Array.isArray(data.results) && data.results.length === 0) {
@@ -90,6 +125,9 @@ const Result = () => {
           <h1 className="text-2xl font-semibold text-[#FF914D] mb-4">
             กำลังค้นหา
           </h1>
+          <h2 className="text-base italic text-gray-500 mb-4">
+            การค้นหาอาจใช้เวลาสักครู่
+          </h2>
         </div>
       ) : (
         <div className="">
@@ -102,8 +140,41 @@ const Result = () => {
               onClick={() => navigate("/search-cat")}
             />
           </div>
-          {/* show error */}
-          {error ? (
+
+          <div className="flex gap-2 justify-center mt-6">
+            {["all", "found", "adoption", "lost"].map((type) => (
+              <button
+                key={type}
+                onClick={() => setSelectedType(type)}
+                className={`px-4 py-2 rounded-full font-semibold border ${
+                  selectedType === type
+                    ? "bg-[#FF914D] text-white border-[#FF914D]"
+                    : "bg-white text-[#FF914D] border-[#FF914D]"
+                }`}
+              >
+                {type === "all"
+                  ? "ทั้งหมด"
+                  : type === "found"
+                  ? "แมวหาเจ้าของ"
+                  : type === "adoption"
+                  ? "แมวหาบ้าน"
+                  : "แมวหาย"}
+              </button>
+            ))}
+          </div>
+
+          {/* no cat */}
+          {noCatDetected ? (
+            <div className="flex flex-col items-center justify-center mt-28 px-4 text-center">
+              <MdErrorOutline className="text-6xl text-yellow-500 mb-4" />
+              <p className="text-3xl font-semibold text-yellow-500 max-w-xl">
+                ไม่พบแมวในรูปภาพ
+              </p>
+              <p className="text-md text-gray-600 mt-2">
+                กรุณาเลือกรูปใหม่ที่เห็นแมวชัดเจน
+              </p>
+            </div>
+          ) : error ? ( // Show error
             <div className="flex flex-col items-center justify-center mt-28 px-4 text-center">
               <MdErrorOutline className="text-6xl text-red-500 mb-4" />
               <p className="text-3xl font-semibold text-red-500 max-w-xl">
@@ -111,9 +182,9 @@ const Result = () => {
               </p>
               <p className="text-md text-gray-600 mt-2">{error}</p>
             </div>
-          ) : results.length > 0 ? ( // results
+          ) : filteredResults.length > 0 ? ( // results
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-x-20 gap-y-10 mt-8">
-              {results.map((post: any) => (
+              {filteredResults.map((post: any) => (
                 <div
                   key={post.post_id}
                   onClick={() => navigate(`/cat-detail/${post.post_id}`)}
@@ -183,7 +254,7 @@ const Result = () => {
             <div className="flex flex-col items-center justify-center mt-28 px-4 text-center">
               <TbCat className="text-5xl text-[#FF914D] mb-4" />
               <p className="text-2xl font-semibold text-[#FF914D] max-w-xl">
-                ไม่พบโพสต์ที่ตรงกับตำแหน่งที่เลือก
+                ไม่พบโพสต์ที่ตรงกับเงื่อนไข
               </p>
               <p className="text-md text-gray-600 mt-2">
                 กรุณาลองใหม่อีกครั้ง หรือเปลี่ยนเงื่อนไขการค้นหา
