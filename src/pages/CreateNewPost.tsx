@@ -1,15 +1,12 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { locationData } from "../assets/location";
 import Swal from "sweetalert2";
 import { useNavigate } from "react-router-dom";
+import { GoogleMap, Marker } from "@react-google-maps/api";
 
 const NewPost: React.FC = () => {
   const [name, setName] = useState("");
   const [image, setImage] = useState<File | null>(null);
-  const [province, setProvince] = useState("");
-  const [district, setDistrict] = useState("");
-  const [sub_district, setSub_District] = useState("");
   const [gender, setGender] = useState("");
   const [emailPreference, setEmailPreference] = useState<boolean>(false);
   const [color, setColor] = useState("");
@@ -18,26 +15,14 @@ const NewPost: React.FC = () => {
   const [catMarking, setCatMarking] = useState("");
   const [postType, setPostType] = useState("");
   const [selectedDate, setSelectedDate] = useState<string | null>(null); // New state for selected date
+  const [location, setLocation] = useState<{ lat: number; lng: number } | null>(
+    null
+  );
+  const [mapLoaded, setMapLoaded] = useState(false);
+
   const navigate = useNavigate();
 
-  const provinces = Array.from(
-    new Set(locationData.map((item) => item.province))
-  );
-  const districts = (province: string) => {
-    const filteredDistricts = locationData.filter(
-      (item) => item.province === province
-    );
-    const uniqueDistricts = Array.from(
-      new Set(filteredDistricts.map((item) => item.amphoe))
-    );
-    return uniqueDistricts;
-  };
-
-  const subDistricts = (district: string) => {
-    return locationData
-      .filter((item) => item.amphoe === district)
-      .map((item) => item.district);
-  };
+  const defaultCenter = { lat: 13.7563, lng: 100.5018 }; // Bangkok
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -57,10 +42,6 @@ const NewPost: React.FC = () => {
     formData.append("color", color);
     formData.append("breed", breed);
     formData.append("cat_marking", catMarking);
-    formData.append(
-      "location",
-      JSON.stringify({ province, district, sub_district })
-    );
     formData.append("user_email", userEmail);
     const formattedDate =
       selectedDate || new Date().toISOString().split("T")[0];
@@ -69,6 +50,23 @@ const NewPost: React.FC = () => {
     formData.append("email_notification", emailPreference ? "true" : "false");
     formData.append("post_type", postType);
     formData.append("status", "active");
+
+    if (location) {
+      formData.append(
+        "location",
+        JSON.stringify({
+          latitude: location.lat,
+          longitude: location.lng,
+        })
+      );
+    } else {
+      Swal.fire({
+        icon: "warning",
+        title: "กรุณาเลือกตำแหน่งบนแผนที่",
+        confirmButtonText: "ตกลง",
+      });
+      return;
+    }
 
     if (image) {
       formData.append("cat_image", image);
@@ -151,25 +149,29 @@ const NewPost: React.FC = () => {
     e.stopPropagation();
   };
 
-  // Handle province change
-  const handleProvinceChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const selectedProvince = e.target.value;
-    setProvince(selectedProvince);
-    setDistrict(""); // Reset district and sub-district
-    setSub_District("");
-  };
-
-  // Handle district change
-  const handleDistrictChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const selectedDistrict = e.target.value;
-    setDistrict(selectedDistrict);
-    setSub_District(""); // Reset sub-district
-  };
-
   const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const date = e.target.value; // Date will be in the format YYYY-MM-DD
     setSelectedDate(date); // Set it directly
   };
+
+  useEffect(() => {
+    if (mapLoaded && navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const userLocation = {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          };
+          setLocation(userLocation); // Set marker & center
+        },
+        (error) => {
+          console.error("Geolocation error:", error);
+          // fallback to default
+          setLocation(defaultCenter);
+        }
+      );
+    }
+  }, [mapLoaded]);
 
   return (
     <div className="h-full mb-20">
@@ -282,7 +284,9 @@ const NewPost: React.FC = () => {
                     type="checkbox"
                     value="found"
                     checked={postType === "found"}
-                    onChange={() => setPostType(postType === "found" ? "" : "found")}
+                    onChange={() =>
+                      setPostType(postType === "found" ? "" : "found")
+                    }
                     className="mr-2"
                   />
                   <label htmlFor="found">ตามหาเจ้าของแมว</label>
@@ -293,14 +297,15 @@ const NewPost: React.FC = () => {
                     type="checkbox"
                     value="adoption"
                     checked={postType === "adoption"}
-                    onChange={() => setPostType(postType === "adoption" ? "" : "adoption")}
+                    onChange={() =>
+                      setPostType(postType === "adoption" ? "" : "adoption")
+                    }
                     className="mr-2"
                   />
                   <label htmlFor="adoption">ตามหาบ้านให้แมว</label>
                 </div>
               </div>
             </div>
-
 
             {/* Content Textarea */}
             {postType === "lost" && (
@@ -338,9 +343,7 @@ const NewPost: React.FC = () => {
                     type="checkbox"
                     value="male"
                     checked={gender === "male"}
-                    onChange={() =>
-                      setGender(gender === "male" ? "" : "male")
-                    }
+                    onChange={() => setGender(gender === "male" ? "" : "male")}
                     className="mr-2"
                   />
                   <label htmlFor="male">เพศผู้</label>
@@ -360,7 +363,6 @@ const NewPost: React.FC = () => {
                 </div>
               </div>
             </div>
-
 
             {/* Color and Breed Section (in the same line) */}
             <div className="mb-6 flex space-x-6">
@@ -418,79 +420,33 @@ const NewPost: React.FC = () => {
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg"
               />
             </div>
-            <div className="mb-6 flex space-x-4">
-              {/* Province Dropdown */}
-              <div className="flex-1">
-                <label
-                  htmlFor="province"
-                  className="text-[#FF914D] block text-lg font-medium mb-2"
-                >
-                  จังหวัด
-                </label>
-                <select
-                  id="province"
-                  value={province}
-                  onChange={handleProvinceChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-                  required
-                >
-                  <option value="">เลือกจังหวัด</option>
-                  {provinces.map((prov, index) => (
-                    <option key={index} value={prov}>
-                      {prov}
-                    </option>
-                  ))}
-                </select>
-              </div>
 
-              {/* District Dropdown */}
-              <div className="flex-1">
-                <label
-                  htmlFor="district"
-                  className="text-[#FF914D] block text-lg font-medium mb-2"
-                >
-                  แขวง/อำเภอ
-                </label>
-                <select
-                  id="district"
-                  value={district}
-                  onChange={handleDistrictChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-                  required
-                >
-                  <option value="">เลือกแขวง/อำเภอ</option>
-                  {districts(province).map((district, index) => (
-                    <option key={index} value={district}>
-                      {district}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Sub-district Dropdown */}
-              <div className="flex-1">
-                <label
-                  htmlFor="sub_district"
-                  className="text-[#FF914D] block text-lg font-medium mb-2"
-                >
-                  เขต/ตำบล
-                </label>
-                <select
-                  id="sub_district"
-                  value={sub_district}
-                  onChange={(e) => setSub_District(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-                  required
-                >
-                  <option value="">เลือกเขต/ตำบล</option>
-                  {subDistricts(district)?.map((subDist, index) => (
-                    <option key={index} value={subDist}>
-                      {subDist}
-                    </option>
-                  ))}
-                </select>
-              </div>
+            {/* location */}
+            <div className="mb-6">
+              <label className="text-[#FF914D] block text-lg font-medium mb-2">
+                ตำแหน่ง
+              </label>
+              <GoogleMap
+                onLoad={() => setMapLoaded(true)}
+                mapContainerStyle={{ width: "100%", height: "400px" }}
+                center={location || defaultCenter}
+                zoom={15}
+                onClick={(e) =>
+                  setLocation({
+                    lat: e.latLng?.lat() ?? 0,
+                    lng: e.latLng?.lng() ?? 0,
+                  })
+                }
+                options={{
+                  disableDefaultUI: true,
+                  zoomControl: true,
+                  streetViewControl: false,
+                }}
+              >
+                {location && <Marker position={location} />}
+              </GoogleMap>
             </div>
+
             {/* Conditionally render the selected date if postType is 'lostcat' */}
             {postType === "lost" && (
               <div className="mb-4">

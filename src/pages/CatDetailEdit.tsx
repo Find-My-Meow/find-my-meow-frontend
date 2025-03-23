@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { locationData } from "../assets/location";
 import axios from "axios";
+import { GoogleMap, Marker } from "@react-google-maps/api";
 
 interface Post {
   user_id: string;
@@ -12,9 +13,8 @@ interface Post {
   breed: string;
   cat_marking: string;
   location: {
-    province: string;
-    district: string;
-    sub_district: string;
+    latitude: number;
+    longitude: number;
   };
   lost_date?: string;
   other_information?: string;
@@ -25,7 +25,7 @@ interface Post {
   post_type: string;
   email_notification: boolean;
   user_email: string;
-  status: string
+  status: string;
 }
 interface Cat_image {
   image_id: string;
@@ -40,9 +40,6 @@ const CatDetailEdit = () => {
   const [name, setName] = useState("");
   const [image, setImage] = useState<File | null>(null);
   const [existingImage, setExistingImage] = useState<Cat_image | null>(null);
-  const [province, setProvince] = useState("");
-  const [district, setDistrict] = useState("");
-  const [sub_district, setSub_District] = useState("");
   const [gender, setGender] = useState("");
   const [emailPreference, setEmailPreference] = useState<boolean>(false);
   const [color, setColor] = useState("");
@@ -53,26 +50,12 @@ const CatDetailEdit = () => {
   const [status, setStatus] = useState("");
   const [selectedDate, setSelectedDate] = useState<string | null>(null); // New state for selected date
   const [userMatch, setUserMatch] = useState<boolean>(false);
-
-
-  const provinces = Array.from(
-    new Set(locationData.map((item) => item.province))
+  const [location, setLocation] = useState<{ lat: number; lng: number } | null>(
+    null
   );
-  const districts = (province: string) => {
-    const filteredDistricts = locationData.filter(
-      (item) => item.province === province
-    );
-    const uniqueDistricts = Array.from(
-      new Set(filteredDistricts.map((item) => item.amphoe))
-    );
-    return uniqueDistricts;
-  };
+  const [mapLoaded, setMapLoaded] = useState(false);
 
-  const subDistricts = (district: string) => {
-    return locationData
-      .filter((item) => item.amphoe === district)
-      .map((item) => item.district);
-  };
+  const defaultCenter = { lat: 13.7563, lng: 100.5018 }; // Bangkok
 
   useEffect(() => {
     const fetchPostDetail = async () => {
@@ -87,13 +70,18 @@ const CatDetailEdit = () => {
         setPost(data);
         setFormData(data); // Set form data directly
         setImage(data.image || null); // Set image if available
-        setExistingImage(data.cat_image && typeof data.cat_image === "object" ? data.cat_image : null);
-        setProvince(data.location.province || "");
-        setDistrict(data.location.district || "");
-        setSub_District(data.location.sub_district || "");
+        setExistingImage(
+          data.cat_image && typeof data.cat_image === "object"
+            ? data.cat_image
+            : null
+        );
+        setLocation({
+          lat: Number(data.location.latitude),
+          lng: Number(data.location.longitude),
+        });
         setPostType(data.post_type); // ← so the radio shows correctly initially
-        setGender(data.gender)
-        setEmailPreference(data.email_notification)
+        setGender(data.gender);
+        setEmailPreference(data.email_notification);
         const storedUserId = localStorage.getItem("user_id");
         if (data.user_id === storedUserId) {
           setUserMatch(true);
@@ -128,10 +116,13 @@ const CatDetailEdit = () => {
     formData.append("file", file);
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/v1/image`, {
-        method: "POST",
-        body: formData,
-      });
+      const response = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/api/v1/image`,
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
 
       if (!response.ok) {
         console.error("Failed to upload image");
@@ -157,9 +148,6 @@ const CatDetailEdit = () => {
     }
   };
 
-
-
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -167,7 +155,10 @@ const CatDetailEdit = () => {
     const parsedUser = JSON.parse(localStorage.getItem("user") || "{}");
 
     // Ensure `user_id` is correctly set
-    const userId = storedUserId && storedUserId !== "null" ? storedUserId : formData?.user_id;
+    const userId =
+      storedUserId && storedUserId !== "null"
+        ? storedUserId
+        : formData?.user_id;
     if (!userId) {
       console.error("No valid user_id found");
       alert("Error: Missing user_id. Please log in again.");
@@ -189,14 +180,35 @@ const CatDetailEdit = () => {
     formDataToSend.append("gender", gender || formData?.gender || "");
     formDataToSend.append("color", color || formData?.color || "");
     formDataToSend.append("breed", breed || formData?.breed || "");
-    formDataToSend.append("cat_marking", catMarking || formData?.cat_marking || "");
-    formDataToSend.append("location", JSON.stringify({ province, district, sub_district }));
-    formDataToSend.append("lost_date", selectedDate || formData?.lost_date || "");
-    formDataToSend.append("other_information", other_information || formData?.other_information || "");
-    formDataToSend.append("email_notification", emailPreference?.toString() || formData?.email_notification?.toString() || "false");
+    formDataToSend.append(
+      "cat_marking",
+      catMarking || formData?.cat_marking || ""
+    );
+    if (location) {
+      formDataToSend.append(
+        "location",
+        JSON.stringify({
+          latitude: location.lat,
+          longitude: location.lng,
+        })
+      );
+    }
+    formDataToSend.append(
+      "lost_date",
+      selectedDate || formData?.lost_date || ""
+    );
+    formDataToSend.append(
+      "other_information",
+      other_information || formData?.other_information || ""
+    );
+    formDataToSend.append(
+      "email_notification",
+      emailPreference?.toString() ||
+        formData?.email_notification?.toString() ||
+        "false"
+    );
     formDataToSend.append("post_type", postType || formData?.post_type || "");
-    formDataToSend.append("status", status || "active")
-
+    formDataToSend.append("status", status || "active");
 
     if (image) {
       try {
@@ -238,14 +250,11 @@ const CatDetailEdit = () => {
     }
   };
 
-
-
   // Handle Image Upload
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       setImage(e.target.files[0]);
       setExistingImage(null);
-
     }
   };
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
@@ -255,7 +264,6 @@ const CatDetailEdit = () => {
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       setImage(e.dataTransfer.files[0]);
       setExistingImage(null);
-
     }
   };
 
@@ -267,21 +275,6 @@ const CatDetailEdit = () => {
   const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
-  };
-
-  // Handle province change
-  const handleProvinceChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const selectedProvince = e.target.value;
-    setProvince(selectedProvince);
-    setDistrict(""); // Reset district and sub-district
-    setSub_District("");
-  };
-
-  // Handle district change
-  const handleDistrictChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const selectedDistrict = e.target.value;
-    setDistrict(selectedDistrict);
-    setSub_District(""); // Reset sub-district
   };
 
   const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -325,7 +318,6 @@ const CatDetailEdit = () => {
                   />
                 </label>
                 <div className="mt-auto p-2 text-black">{image.name}</div>
-
               </>
             ) : existingImage ? (
               <>
@@ -346,8 +338,9 @@ const CatDetailEdit = () => {
                     className="hidden"
                   />
                 </label>
-                <div className="mt-auto p-2 text-black">{existingImage.image_path}</div>
-
+                <div className="mt-auto p-2 text-black">
+                  {existingImage.image_path}
+                </div>
               </>
             ) : (
               <>
@@ -381,7 +374,6 @@ const CatDetailEdit = () => {
                     onChange={handleImageChange}
                     className="hidden"
                   />
-
                 </div>
               </>
             )}
@@ -407,21 +399,24 @@ const CatDetailEdit = () => {
                       name="postType"
                       value={type}
                       checked={postType === type}
-                      onChange={() => setPostType(postType === type ? "" : type)}
+                      onChange={() =>
+                        setPostType(postType === type ? "" : type)
+                      }
                       className="mr-2"
                     />
                     <label htmlFor={type}>
-                      {{
-                        lost: "ตามหาแมวหาย",
-                        found: "ตามหาเจ้าของแมว",
-                        adoption: "ตามหาบ้านให้แมว",
-                      }[type]}
+                      {
+                        {
+                          lost: "ตามหาแมวหาย",
+                          found: "ตามหาเจ้าของแมว",
+                          adoption: "ตามหาบ้านให้แมว",
+                        }[type]
+                      }
                     </label>
                   </div>
                 ))}
               </div>
             </div>
-
 
             {/* Content Textarea */}
             {postType === "lost" && (
@@ -444,10 +439,11 @@ const CatDetailEdit = () => {
               </div>
             )}
 
-
             {/* Gender Section */}
             <div className="mb-4">
-              <label className="text-[#FF914D] block text-lg font-medium mb-2">เพศ</label>
+              <label className="text-[#FF914D] block text-lg font-medium mb-2">
+                เพศ
+              </label>
               <div className="flex space-x-6">
                 <div>
                   <input
@@ -465,7 +461,9 @@ const CatDetailEdit = () => {
                     id="female"
                     type="checkbox"
                     value="female"
-                    onChange={() => setGender(gender === "female" ? "" : "female")}
+                    onChange={() =>
+                      setGender(gender === "female" ? "" : "female")
+                    }
                     className="mr-2"
                     checked={gender === "female"}
                   />
@@ -473,7 +471,6 @@ const CatDetailEdit = () => {
                 </div>
               </div>
             </div>
-
 
             {/* Color and Breed Section (in the same line) */}
             <div className="mb-6 flex space-x-6">
@@ -531,79 +528,35 @@ const CatDetailEdit = () => {
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg"
               />
             </div>
-            <div className="mb-6 flex space-x-4">
-              {/* Province Dropdown */}
-              <div className="flex-1">
-                <label
-                  htmlFor="province"
-                  className="text-[#FF914D] block text-lg font-medium mb-2"
-                >
-                  จังหวัด
-                </label>
-                <select
-                  id="province"
-                  value={province}
-                  onChange={handleProvinceChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-                  required
-                >
-                  <option value="">เลือกจังหวัด</option>
-                  {provinces.map((prov, index) => (
-                    <option key={index} value={prov}>
-                      {prov}
-                    </option>
-                  ))}
-                </select>
-              </div>
 
-              {/* District Dropdown */}
-              <div className="flex-1">
-                <label
-                  htmlFor="district"
-                  className="text-[#FF914D] block text-lg font-medium mb-2"
-                >
-                  แขวง/อำเภอ
-                </label>
-                <select
-                  id="district"
-                  value={district}
-                  onChange={handleDistrictChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-                  required
-                >
-                  <option value="">เลือกแขวง/อำเภอ</option>
-                  {districts(province).map((district, index) => (
-                    <option key={index} value={district}>
-                      {district}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Sub-district Dropdown */}
-              <div className="flex-1">
-                <label
-                  htmlFor="sub_district"
-                  className="text-[#FF914D] block text-lg font-medium mb-2"
-                >
-                  เขต/ตำบล
-                </label>
-                <select
-                  id="sub_district"
-                  value={sub_district}
-                  onChange={(e) => setSub_District(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-                  required
-                >
-                  <option value="">เลือกเขต/ตำบล</option>
-                  {subDistricts(district)?.map((subDist, index) => (
-                    <option key={index} value={subDist}>
-                      {subDist}
-                    </option>
-                  ))}
-                </select>
-              </div>
+            {/* location */}
+            <div className="mb-6">
+              <label className="text-[#FF914D] block text-lg font-medium mb-2">
+                ตำแหน่ง
+              </label>
+              <GoogleMap
+                onLoad={() => setMapLoaded(true)}
+                mapContainerStyle={{ width: "100%", height: "400px" }}
+                center={
+                  location?.lat && location?.lng ? location : defaultCenter
+                }
+                zoom={15}
+                onClick={(e) =>
+                  setLocation({
+                    lat: e.latLng?.lat() ?? 0,
+                    lng: e.latLng?.lng() ?? 0,
+                  })
+                }
+                options={{
+                  disableDefaultUI: true,
+                  zoomControl: true,
+                  streetViewControl: false,
+                }}
+              >
+                {location && <Marker position={location} />}
+              </GoogleMap>
             </div>
+
             {/* Conditionally render the selected date if postType is 'lostcat' */}
             {postType === "lost" && (
               <div className="mb-4">
@@ -619,7 +572,6 @@ const CatDetailEdit = () => {
                 />
               </div>
             )}
-
 
             {/* extra content Textarea */}
             <div className="mb-6">
