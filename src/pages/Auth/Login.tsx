@@ -1,9 +1,11 @@
 import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google";
 import { jwtDecode } from "jwt-decode";
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom"; // <-- add this
 
 const LoginPage = () => {
   const [user, setUser] = useState<{ name: string; email: string } | null>(null);
+  const navigate = useNavigate(); // <-- and this
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
@@ -21,14 +23,19 @@ const LoginPage = () => {
     const userInfo = {
       name: decodedToken.name,
       email: decodedToken.email,
+      picture: decodedToken.picture, // optional
     };
     const userId = decodedToken.sub;
-    // Save only the userId to localStorage
+
     localStorage.setItem("user_id", userId);
-    setUser(userInfo);
     localStorage.setItem("user", JSON.stringify(userInfo));
+    setUser(userInfo);
+
+    window.dispatchEvent(new Event("userLogin")); // notify Navbar
 
     console.log("User Info from Google login:", userInfo);
+
+    navigate("/lost-cat"); // <-- navigate after login success
   };
 
   const handleLoginError = () => {

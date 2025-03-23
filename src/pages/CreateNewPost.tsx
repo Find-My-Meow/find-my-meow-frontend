@@ -180,10 +180,10 @@ const NewPost: React.FC = () => {
         <h1 className="text-3xl font-bold">สร้างโพสต์ใหม่</h1>
       </div>
 
-      <div className="max-w-6xl mx-auto bg-[#FFE9DB] shadow-md rounded-lg flex">
-        {/* Left side: Upload photo section */}
-        <div className="flex justify-start items-center w-1/2 p-6">
-          <div
+      <div className="max-w-6xl mx-auto bg-[#FFE9DB] shadow-md rounded-lg flex flex-col md:flex-row">
+      {/* Left side: Upload photo section */}
+      <div className="flex justify-center items-center w-full md:w-1/2 p-6">
+      <div
             className="border-2 border-dashed border-gray-300 flex flex-col justify-center items-center rounded-lg bg-white"
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
@@ -250,8 +250,8 @@ const NewPost: React.FC = () => {
         </div>
 
         {/* Right side: Form section */}
-        <div className="w-2/3 p-6">
-          <form onSubmit={handleSubmit}>
+        <div className="w-full md:w-2/3 p-6">
+        <form onSubmit={handleSubmit}>
             <div className="mb-4">
               <label
                 htmlFor="postType"
