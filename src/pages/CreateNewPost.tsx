@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import Swal from "sweetalert2";
+import heic2any from "heic2any";
 import { useNavigate } from "react-router-dom";
 import { GoogleMap, Marker } from "@react-google-maps/api";
+import { MutatingDots } from "react-loader-spinner";
 
 const NewPost: React.FC = () => {
   const [name, setName] = useState("");
@@ -19,6 +21,7 @@ const NewPost: React.FC = () => {
     null
   );
   const [mapLoaded, setMapLoaded] = useState(false);
+  const [isLoadingImage, setIsLoadingImage] = useState(false);
 
   const navigate = useNavigate();
 
@@ -192,11 +195,43 @@ const NewPost: React.FC = () => {
   };
 
   // Handle Image Upload
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      setImage(e.target.files[0]);
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsLoadingImage(true); // start loading
+
+    if (
+      file.type === "image/heic" ||
+      file.name.toLowerCase().endsWith(".heic")
+    ) {
+      try {
+        const convertedBlob = await heic2any({
+          blob: file,
+          toType: "image/jpeg",
+          quality: 0.9,
+        });
+
+        const jpegFile = new File(
+          [convertedBlob as Blob],
+          file.name.replace(/\.heic$/i, ".jpg"),
+          { type: "image/jpeg" }
+        );
+
+        setImage(jpegFile);
+      } catch (error) {
+        console.error("Failed to convert HEIC:", error);
+        Swal.fire({
+          icon: "error",
+          title: "ไม่สามารถแสดงรูปภาพไฟล์ HEIC ได้",
+          text: "กรุณาเลือกรูปภาพที่เป็น JPG หรือ PNG",
+        });
+      }
+    } else {
+      setImage(file);
     }
+    setIsLoadingImage(false); // end loading
   };
+
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
@@ -248,15 +283,31 @@ const NewPost: React.FC = () => {
       </div>
 
       <div className="max-w-6xl mx-auto bg-[#FFE9DB] shadow-md rounded-lg flex flex-col md:flex-row">
-      {/* Left side: Upload photo section */}
-      <div className="flex justify-center items-center w-full md:w-1/2 p-6">
-      <div
+        {/* Left side: Upload photo section */}
+        <div className="flex justify-center items-center w-full md:w-1/2 p-6">
+          <div
             className="border-2 border-dashed border-gray-300 flex flex-col justify-center items-center rounded-lg bg-white"
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
           >
-            {!image ? (
+            {isLoadingImage ? (
+              <div className="h-[30rem] w-[30rem] flex flex-col items-center justify-center">
+                <MutatingDots
+                  visible={true}
+                  height="100"
+                  width="100"
+                  color="#FF914D"
+                  secondaryColor="#FF914D"
+                  radius="12.5"
+                  ariaLabel="mutating-dots-loading"
+                  wrapperStyle={{}}
+                  wrapperClass=""
+                />
+
+                <p className="text-[#FF914D] text-lg">กำลังโหลดรูปภาพ...</p>
+              </div>
+            ) : !image ? (
               <div className="h-[30rem] w-[30rem] justify-items-center content-center">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -318,7 +369,7 @@ const NewPost: React.FC = () => {
 
         {/* Right side: Form section */}
         <div className="w-full md:w-2/3 p-6">
-        <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit}>
             <div className="mb-4">
               <label
                 htmlFor="postType"
