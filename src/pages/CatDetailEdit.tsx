@@ -240,7 +240,7 @@ const CatDetailEdit = () => {
     }
 
     Swal.fire({
-      title: "กำลังสร้างโพสต์...",
+      title: "กำลังอัปเดตโพสต์...",
       allowOutsideClick: false,
       didOpen: () => {
         Swal.showLoading();
