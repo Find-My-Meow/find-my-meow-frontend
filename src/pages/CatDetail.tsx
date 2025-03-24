@@ -189,7 +189,7 @@ const CatDetail = () => {
 
 
         {/* Main Content */}
-        <div className="md:flex gap-6 mt-10 rounded-xl overflow-hidden">
+        <div className="md:flex gap-6 mt-10 rounded-xl overflow-hidden mb-6">
           {/* Left: Image */}
           <div className="md:w-1/2 w-full flex items-center justify-center p-4 bg-white rounded-xl">
             {post.cat_image.image_path && (
@@ -276,7 +276,7 @@ const CatDetail = () => {
         </div>
         {/* Buttons */}
         {isOwner && (
-          <div className="flex justify-end gap-4 mt-6">
+          <div className="flex justify-end gap-4">
             <button
               className="px-4 py-2 bg-[#FF914D] text-white font-semibold rounded-lg hover:bg-orange-500 transition"
               onClick={handleEdit}

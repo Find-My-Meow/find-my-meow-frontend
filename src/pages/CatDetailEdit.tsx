@@ -169,14 +169,61 @@ const CatDetailEdit = () => {
     formDataToSend.append(
       "email_notification",
       emailPreference?.toString() ||
-      formData?.email_notification?.toString() ||
-      "false"
+        formData?.email_notification?.toString() ||
+        "false"
     );
     formDataToSend.append("post_type", postType || formData?.post_type || "");
     formDataToSend.append("status", status || "active");
+
     if (image) {
-      // New image was uploaded
-      formDataToSend.append("cat_image", image);
+      // Check image quality before uploading
+      const qualityForm = new FormData();
+      qualityForm.append("file", image);
+
+      try {
+        const qualityResponse = await axios.post(
+          `${import.meta.env.VITE_BACKEND_URL}/api/v1/image/check-quality`,
+          qualityForm
+        );
+
+        const issues = qualityResponse.data.issues || [];
+
+        // Image too small
+        if (issues.includes("resolution")) {
+          await Swal.fire({
+            icon: "error",
+            title: "รูปภาพมีขนาดเล็กเกินไป",
+            text: "กรุณาเลือกรูปที่มีความละเอียดสูงขึ้น",
+          });
+          return;
+        }
+
+        // Image blur: warning
+        if (issues.includes("blurry")) {
+          const result = await Swal.fire({
+            icon: "warning",
+            title: "รูปภาพอาจจะเบลอ",
+            text: "คุณต้องการใช้รูปภาพนี้ต่อไปหรือไม่? การใช้รูปภาพเบลออาจทำให้การค้นหาไม่แม่นยำ",
+            showCancelButton: true,
+            confirmButtonText: "ใช้รูปนี้ต่อไป",
+            cancelButtonText: "เปลี่ยนรูป",
+          });
+
+          if (!result.isConfirmed) {
+            return;
+          }
+        }
+        // New image was uploaded
+        formDataToSend.append("cat_image", image);
+      } catch (error) {
+        console.error("Image quality check failed:", error);
+        Swal.fire({
+          icon: "error",
+          title: "เกิดข้อผิดพลาด",
+          text: "ไม่สามารถตรวจสอบคุณภาพของรูปภาพได้ กรุณาลองใหม่อีกครั้ง",
+        });
+        return;
+      }
     } else if (formData?.cat_image?.image_id) {
       // No new image, but an existing one is present
       formDataToSend.append("image_id", formData.cat_image.image_id);
@@ -188,6 +235,15 @@ const CatDetailEdit = () => {
       });
       return;
     }
+
+    Swal.fire({
+      title: "กำลังสร้างโพสต์...",
+      allowOutsideClick: false,
+      didOpen: () => {
+        Swal.showLoading();
+      },
+    });
+
     try {
       const url = `${import.meta.env.VITE_BACKEND_URL}/api/v1/posts/${post_id}`;
       console.log("Sending request to:", url);
@@ -206,17 +262,38 @@ const CatDetailEdit = () => {
         timer: 1500,
       }).then(() => {
         navigate(`/cat-detail/${post?.post_id}`);
-      });;
+      });
     } catch (error: unknown) {
+      // Handle specific case for "no cat detected"
+      const errorMessage =
+        error?.response?.data?.detail ||
+        "ไม่สามารถอัปเดตโพสต์ได้ กรุณาลองใหม่อีกครั้ง";
+      if (
+        typeof errorMessage === "string" &&
+        errorMessage.includes("No cat detected")
+      ) {
+        Swal.fire({
+          icon: "warning",
+          title: "ไม่พบแมวในรูปภาพ",
+          text: "กรุณาเลือกรูปภาพที่เห็นแมวอย่างชัดเจนใหม่อีกครั้ง",
+          confirmButtonText: "ตกลง",
+        });
+        return;
+      }
+
       if (axios.isAxiosError(error)) {
         console.error("Axios Error:", error.response?.data);
       } else {
         console.error("Unknown Error:", error);
       }
-      await Swal.fire("เกิดข้อผิดพลาด", "ไม่สามารถอัปเดตโพสต์ได้", "error");
+
+      await Swal.fire({
+        icon: "error",
+        title: "เกิดข้อผิดพลาด",
+        text: errorMessage,
+      });
     }
   };
-
 
   // Handle Image Upload
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
