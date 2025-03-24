@@ -631,6 +631,7 @@ const NewPost: React.FC = () => {
             </div>
 
             {/* Email Section */}
+            {(postType === "lost" || postType === "found") && (
             <div className="mb-4 flex items-center space-x-4">
               <label htmlFor="email" className="text-[#FF914D] text-lg font-medium flex items-center">
                 รับแจ้งเตือนผ่าน Email
@@ -658,7 +659,7 @@ const NewPost: React.FC = () => {
                 />
                 <label htmlFor="email">รับ</label>
               </div>
-            </div>
+            </div>)}
 
 
             {/* Submit Button */}

@@ -713,6 +713,7 @@ const CatDetailEdit = () => {
               />
             </div>
             {/* Email Section */}
+            {(postType === "lost" || postType === "found") && (
             <div className="mb-4 flex items-center space-x-4">
               <label
                 htmlFor="email"
@@ -741,7 +742,7 @@ const CatDetailEdit = () => {
                 />
                 <label htmlFor="email">รับ</label>
               </div>
-            </div>
+            </div>)}
 
             {/* Submit Button */}
             <div className="mb-6 flex items-end space-x-4">
