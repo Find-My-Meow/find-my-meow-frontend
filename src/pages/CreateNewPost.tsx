@@ -68,13 +68,60 @@ const NewPost: React.FC = () => {
       return;
     }
 
-    if (image) {
-      formData.append("cat_image", image);
-    } else {
+    if (!image) {
       Swal.fire({
         icon: "warning",
         title: "กรุณาอัปโหลดรูปภาพ",
         confirmButtonText: "ตกลง",
+      });
+      return;
+    }
+
+    // 🟡 Check image quality before adding to formData
+    const qualityCheck = new FormData();
+    qualityCheck.append("file", image);
+
+    try {
+      const qualityRes = await axios.post(
+        `${import.meta.env.VITE_BACKEND_URL}/api/v1/image/check-quality`,
+        qualityCheck
+      );
+
+      const issues = qualityRes.data.issues || [];
+
+      // Image too small
+      if (issues.includes("resolution")) {
+        Swal.fire({
+          icon: "error",
+          title: "รูปภาพมีขนาดเล็กเกินไป",
+          text: "กรุณาเลือกรูปที่มีความละเอียดสูงขึ้น",
+        });
+        return;
+      }
+
+      // Image blur: warning
+      if (issues.includes("blurry")) {
+        const result = await Swal.fire({
+          icon: "warning",
+          title: "รูปภาพอาจจะเบลอ",
+          text: "คุณต้องการใช้รูปภาพนี้ต่อไปหรือไม่? การใช้รูปภาพเบลออาจทำให้การค้นหาไม่แม่นยำ",
+          showCancelButton: true,
+          confirmButtonText: "ใช้รูปนี้ต่อไป",
+          cancelButtonText: "เปลี่ยนรูป",
+        });
+
+        if (!result.isConfirmed) {
+          return;
+        }
+      }
+      // Passed all checks, append to formData
+      formData.append("cat_image", image);
+    } catch (error) {
+      console.error("Image quality check failed:", error);
+      Swal.fire({
+        icon: "error",
+        title: "เกิดข้อผิดพลาด",
+        text: "ไม่สามารถตรวจสอบคุณภาพของรูปภาพได้ กรุณาลองใหม่อีกครั้ง",
       });
       return;
     }
@@ -116,10 +163,30 @@ const NewPost: React.FC = () => {
       });
     } catch (error) {
       console.error("Error creating post:", error);
+      // Extract server error response
+      const errorMessage =
+        error?.response?.data?.detail ||
+        "ไม่สามารถสร้างโพสต์ได้ กรุณาลองใหม่อีกครั้ง";
+
+      // Handle specific case for "no cat detected"
+      if (
+        typeof errorMessage === "string" &&
+        errorMessage.includes("No cat detected")
+      ) {
+        Swal.fire({
+          icon: "warning",
+          title: "ไม่พบแมวในรูปภาพ",
+          text: "กรุณาเลือกรูปภาพที่เห็นแมวอย่างชัดเจนใหม่อีกครั้ง",
+          confirmButtonText: "ตกลง",
+        });
+        return;
+      }
+
+      // Fallback for other errors
       Swal.fire({
         icon: "error",
         title: "เกิดข้อผิดพลาด",
-        text: "ไม่สามารถสร้างโพสต์ได้ กรุณาลองใหม่อีกครั้ง",
+        text: errorMessage,
       });
     }
   };

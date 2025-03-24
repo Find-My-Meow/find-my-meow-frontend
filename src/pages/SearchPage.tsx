@@ -21,9 +21,6 @@ const SearchPage = () => {
   const circleRef = useRef<google.maps.Circle | null>(null);
   const mapRef = useRef<google.maps.Map | null>(null);
 
-  console.log(location);
-  console.log(radius);
-
   const handleMapLoad = (map: google.maps.Map) => {
     setMapLoaded(true);
     mapRef.current = map;
@@ -182,7 +179,7 @@ const SearchPage = () => {
                   <button
                     type="button"
                     onClick={() => setImage(null)}
-                    className="absolute -top-3 -right-3 p-1 bg-white rounded-full text-red-500 text-3xl hover:text-red-600 transition z-10"
+                    className="absolute -top-3 -right-1 p-1 bg-white rounded-full text-red-500 text-3xl hover:text-red-600 transition z-10"
                     title="ลบรูปภาพ"
                   >
                     <IoIosCloseCircleOutline />
