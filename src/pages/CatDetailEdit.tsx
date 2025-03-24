@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
-import { locationData } from "../assets/location";
+import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 import { GoogleMap, Marker } from "@react-google-maps/api";
+import Swal from "sweetalert2";
 
 interface Post {
   user_id: string;
@@ -54,6 +54,7 @@ const CatDetailEdit = () => {
     null
   );
   const [mapLoaded, setMapLoaded] = useState(false);
+  const navigate = useNavigate();
 
   const defaultCenter = { lat: 13.7563, lng: 100.5018 }; // Bangkok
 
@@ -111,42 +112,6 @@ const CatDetailEdit = () => {
       </div>
     );
   }
-  const uploadImage = async (file: File) => {
-    const formData = new FormData();
-    formData.append("file", file);
-
-    try {
-      const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/api/v1/image`,
-        {
-          method: "POST",
-          body: formData,
-        }
-      );
-
-      if (!response.ok) {
-        console.error("Failed to upload image");
-        return null;
-      }
-
-      const data = await response.json();
-      console.log("Image upload response:", data);
-
-      if (data?.image_id && data?.stored_filename && data?.image_path) {
-        return {
-          image_id: data.image_id,
-          stored_filename: data.stored_filename,
-          image_path: data.image_path,
-        };
-      } else {
-        console.error("Invalid image response format");
-        return null;
-      }
-    } catch (error) {
-      console.error("Error uploading image:", error);
-      return null;
-    }
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -204,29 +169,25 @@ const CatDetailEdit = () => {
     formDataToSend.append(
       "email_notification",
       emailPreference?.toString() ||
-        formData?.email_notification?.toString() ||
-        "false"
+      formData?.email_notification?.toString() ||
+      "false"
     );
     formDataToSend.append("post_type", postType || formData?.post_type || "");
     formDataToSend.append("status", status || "active");
-
     if (image) {
-      try {
-        const imageData = await uploadImage(image);
-        if (imageData) {
-          formDataToSend.append("image_id", imageData.image_id);
-          formDataToSend.append("cat_image", image);
-        }
-      } catch (error) {
-        console.error("Error uploading image:", error);
-        alert("Error uploading image. Please try again.");
-        return;
-      }
-    } else if (formData?.cat_image) {
+      // New image was uploaded
+      formDataToSend.append("cat_image", image);
+    } else if (formData?.cat_image?.image_id) {
+      // No new image, but an existing one is present
       formDataToSend.append("image_id", formData.cat_image.image_id);
+    } else {
+      Swal.fire({
+        icon: "warning",
+        title: "กรุณาอัปโหลดรูปภาพ",
+        confirmButtonText: "ตกลง",
+      });
+      return;
     }
-
-    // **Step 3: Send data to backend**
     try {
       const url = `${import.meta.env.VITE_BACKEND_URL}/api/v1/posts/${post_id}`;
       console.log("Sending request to:", url);
@@ -238,17 +199,24 @@ const CatDetailEdit = () => {
       });
 
       console.log("Response:", response.data);
-      alert("Post updated successfully!");
+      await Swal.fire({
+        icon: "success",
+        title: "อัปเดตโพสต์เรียบร้อยแล้ว",
+        showConfirmButton: false,
+        timer: 1500,
+      }).then(() => {
+        navigate(`/cat-detail/${post?.post_id}`);
+      });;
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
         console.error("Axios Error:", error.response?.data);
-        alert("Error updating post. Please try again.");
       } else {
         console.error("Unknown Error:", error);
-        alert("Error updating post. Please try again.");
       }
+      await Swal.fire("เกิดข้อผิดพลาด", "ไม่สามารถอัปเดตโพสต์ได้", "error");
     }
   };
+
 
   // Handle Image Upload
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {

@@ -1,6 +1,7 @@
 import { GoogleMap, Marker } from "@react-google-maps/api";
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
 
 interface Post {
   user_id: string;
@@ -58,10 +59,21 @@ const CatDetail = () => {
   };
 
   const handleDelete = async () => {
-    if (window.confirm("Are you sure you want to delete this post?")) {
+    const result = await Swal.fire({
+      title: "คุณแน่ใจหรือไม่?",
+      text: "คุณต้องการลบโพสต์นี้หรือไม่?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "ใช่, ลบเลย!",
+      cancelButtonText: "ยกเลิก",
+    });
+  
+    if (result.isConfirmed) {
       try {
         const response = await fetch(
-          `http://127.0.0.1:8000/api/v1/posts/${post_id}`,
+          `${import.meta.env.VITE_BACKEND_URL}/api/v1/posts/${post_id}`,
           {
             method: "DELETE",
           }
@@ -69,57 +81,112 @@ const CatDetail = () => {
         if (!response.ok) {
           throw new Error("Failed to delete post");
         }
-        alert("Post deleted successfully!");
-        navigate("/"); // Redirect to homepage or another page after deletion
+  
+        await Swal.fire({
+          icon: "success",
+          title: "ลบโพสต์สำเร็จ!",
+          showConfirmButton: false,
+          timer: 1500,
+        });
+  
+        navigate("/");
       } catch (error) {
         console.error("Error deleting post:", error);
-        alert("Failed to delete post.");
+        Swal.fire("เกิดข้อผิดพลาด", "ไม่สามารถลบโพสต์ได้", "error");
       }
     }
   };
+  
+
 
   if (!post) {
     return <div className="text-center mt-10">Loading...</div>;
   }
   // Inside the component
-  const handleClosePost = async () => {
-    try {
-      const formData = new FormData();
-      formData.append("status", "close");
-
-      const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/api/v1/posts/${post_id}/status`,
-        {
-          method: "PATCH",
-          body: formData,
+  const handleTogglePostStatus = async () => {
+    const isClosing = post?.status === "active";
+  
+    const result = await Swal.fire({
+      title: isClosing ? "ยืนยันการปิดโพสต์?" : "เปิดโพสต์อีกครั้ง?",
+      text: isClosing
+        ? "เมื่อปิดโพสต์แล้ว จะไม่สามารถแก้ไขหรือแสดงผลได้อีก"
+        : "โพสต์จะกลับมาแสดงในระบบอีกครั้ง",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: isClosing ? "ปิดโพสต์" : "เปิดโพสต์",
+      cancelButtonText: "ยกเลิก",
+    });
+  
+    if (result.isConfirmed) {
+      try {
+        const formData = new FormData();
+        formData.append("status", isClosing ? "close" : "active");
+  
+        const response = await fetch(
+          `${import.meta.env.VITE_BACKEND_URL}/api/v1/posts/${post_id}/status`,
+          {
+            method: "PATCH",
+            body: formData,
+          }
+        );
+  
+        if (!response.ok) {
+          throw new Error("Failed to update post status");
         }
-      );
-
-      if (!response.ok) {
-        throw new Error("Failed to close the post");
+  
+        const updatedPost = await response.json();
+        setPost(updatedPost);
+  
+        await Swal.fire({
+          icon: "success",
+          title: isClosing ? "ปิดโพสต์เรียบร้อยแล้ว!" : "เปิดโพสต์เรียบร้อยแล้ว!",
+          showConfirmButton: false,
+          timer: 1500,
+        }).then(() => {
+          if (post.post_type === "lost") {
+            navigate("/lost-cat");
+          } else if (post.post_type === "found") {
+            navigate("/found-cat");
+          } else if (post.post_type === "adoption") {
+            navigate("/adopt-cat");
+          } else {
+            navigate("/");
+          }
+        });;
+      } catch (error) {
+        console.error("Error updating post status:", error);
+        Swal.fire("เกิดข้อผิดพลาด", "ไม่สามารถอัปเดตสถานะโพสต์ได้", "error");
       }
-
-      const updatedPost = await response.json();
-      setPost(updatedPost); // update UI
-      alert("ปิดโพสต์เรียบร้อยแล้ว");
-    } catch (error) {
-      console.error("Error closing post:", error);
-      alert("ไม่สามารถปิดโพสต์ได้");
     }
   };
+  
+
 
   return (
     <div className="flex items-center justify-center mb-10">
       <div className="w-full max-w-5xl bg-[#FFE9DB] shadow-xl rounded-2xl p-6 relative">
         {/* Close Button */}
         {isOwner && (
-          <button
-            className="absolute top-4 right-4 px-4 py-2 bg-yellow-400 text-white font-semibold rounded-lg hover:bg-yellow-500 transition"
-            onClick={handleClosePost}
-          >
-            ปิดโพสต์
-          </button>
-        )}
+  <div className="flex justify-end mb-4 items-center gap-3">
+    <span className="text-sm text-gray-700">
+      {post.status === "active" ? "สถานะ: เปิดอยู่" : "สถานะ: ปิดโพสต์แล้ว"}
+    </span>
+    <label className="relative inline-flex items-center cursor-pointer">
+      <input
+        type="checkbox"
+        checked={post.status === "active"}
+        onChange={handleTogglePostStatus}
+        className="sr-only peer"
+      />
+      <div className="w-11 h-6 bg-gray-300 rounded-full peer peer-checked:bg-green-500 transition-colors duration-300"></div>
+      <div className="absolute left-0.5 top-0.5 w-5 h-5 bg-white rounded-full shadow-md transform transition-transform duration-300 peer-checked:translate-x-full" />
+    </label>
+  </div>
+)}
+
+
 
         {/* Main Content */}
         <div className="md:flex gap-6 mt-10 rounded-xl overflow-hidden">
