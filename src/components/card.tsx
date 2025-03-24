@@ -44,9 +44,8 @@ const Card = ({ postType }: CardProps) => {
       const userId = localStorage.getItem("user_id");
 
       if (["adoption", "lost", "found"].includes(postType)) {
-        url = `${
-          import.meta.env.VITE_BACKEND_URL
-        }/api/v1/posts/?post_type=${postType}`;
+        url = `${import.meta.env.VITE_BACKEND_URL
+          }/api/v1/posts/?post_type=${postType}`;
       } else if (userId) {
         url = `${import.meta.env.VITE_BACKEND_URL}/api/v1/posts/user/${userId}`;
       } else {
@@ -123,8 +122,8 @@ const Card = ({ postType }: CardProps) => {
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2 gap-x-20 gap-y-10">
         {posts.map((post, index) => (
           <div
-            key={index}
-            onClick={() => navigate(`/cat-detail/${post.post_id}`)}
+            // key={index}
+            // onClick={() => navigate(`/cat-detail/${post.post_id}`)}
             className="rounded-lg bg-[#FFE9DB] shadow-lg flex w-[35rem] min-h-[35-rem] h-auto"
           >
             <div className="flex items-center justify-center m-4">
@@ -160,15 +159,7 @@ const Card = ({ postType }: CardProps) => {
                   {post.breed}
                 </li>
                 <li>
-                  <strong className="text-[#FF914D]">
-                    {postType === "lost"
-                      ? "สถานที่หาย:"
-                      : postType === "found"
-                      ? "สถานที่พบ:"
-                      : "สถานที่:"}
-                  </strong>{" "}
-                  แขวง{post.location.sub_district} เขต{post.location.district}{" "}
-                  {post.location.province}
+                  
                 </li>
               </ul>
               {postType === "lost" && post.lost_date && (
@@ -181,7 +172,22 @@ const Card = ({ postType }: CardProps) => {
                   })}
                 </p>
               )}
+               
+            
+                <div className="w-full flex justify-center mt-20">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation(); // prevent triggering card click
+                      navigate(`/cat-detail/${post.post_id}`);
+                    }}
+                    className="px-4 py-2 bg-[#FF914D] text-white font-semibold rounded-lg hover:bg-orange-500 transition whitespace-nowrap"
+                  >
+                    เพิ่มเติม
+                  </button>
+                </div>
             </div>
+
+
           </div>
         ))}
       </div>
