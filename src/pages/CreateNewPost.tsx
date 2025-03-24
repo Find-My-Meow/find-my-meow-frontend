@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import Swal from "sweetalert2";
+import heic2any from "heic2any";
 import { useNavigate } from "react-router-dom";
 import { GoogleMap, Marker } from "@react-google-maps/api";
+import { MutatingDots } from "react-loader-spinner";
 
 const NewPost: React.FC = () => {
   const [name, setName] = useState("");
@@ -19,6 +21,7 @@ const NewPost: React.FC = () => {
     null
   );
   const [mapLoaded, setMapLoaded] = useState(false);
+  const [isLoadingImage, setIsLoadingImage] = useState(false);
 
   const navigate = useNavigate();
 
@@ -192,11 +195,43 @@ const NewPost: React.FC = () => {
   };
 
   // Handle Image Upload
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      setImage(e.target.files[0]);
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsLoadingImage(true); // start loading
+
+    if (
+      file.type === "image/heic" ||
+      file.name.toLowerCase().endsWith(".heic")
+    ) {
+      try {
+        const convertedBlob = await heic2any({
+          blob: file,
+          toType: "image/jpeg",
+          quality: 0.9,
+        });
+
+        const jpegFile = new File(
+          [convertedBlob as Blob],
+          file.name.replace(/\.heic$/i, ".jpg"),
+          { type: "image/jpeg" }
+        );
+
+        setImage(jpegFile);
+      } catch (error) {
+        console.error("Failed to convert HEIC:", error);
+        Swal.fire({
+          icon: "error",
+          title: "ไม่สามารถแสดงรูปภาพไฟล์ HEIC ได้",
+          text: "กรุณาเลือกรูปภาพที่เป็น JPG หรือ PNG",
+        });
+      }
+    } else {
+      setImage(file);
     }
+    setIsLoadingImage(false); // end loading
   };
+
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
@@ -248,15 +283,31 @@ const NewPost: React.FC = () => {
       </div>
 
       <div className="max-w-6xl mx-auto bg-[#FFE9DB] shadow-md rounded-lg flex flex-col md:flex-row">
-      {/* Left side: Upload photo section */}
-      <div className="flex justify-center items-center w-full md:w-1/2 p-6">
-      <div
+        {/* Left side: Upload photo section */}
+        <div className="flex justify-center items-center w-full md:w-1/2 p-6">
+          <div
             className="border-2 border-dashed border-gray-300 flex flex-col justify-center items-center rounded-lg bg-white"
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
           >
-            {!image ? (
+            {isLoadingImage ? (
+              <div className="h-[30rem] w-[30rem] flex flex-col items-center justify-center">
+                <MutatingDots
+                  visible={true}
+                  height="100"
+                  width="100"
+                  color="#FF914D"
+                  secondaryColor="#FF914D"
+                  radius="12.5"
+                  ariaLabel="mutating-dots-loading"
+                  wrapperStyle={{}}
+                  wrapperClass=""
+                />
+
+                <p className="text-[#FF914D] text-lg">กำลังโหลดรูปภาพ...</p>
+              </div>
+            ) : !image ? (
               <div className="h-[30rem] w-[30rem] justify-items-center content-center">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -318,13 +369,15 @@ const NewPost: React.FC = () => {
 
         {/* Right side: Form section */}
         <div className="w-full md:w-2/3 p-6">
-        <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit}>
             <div className="mb-4">
+
               <label
                 htmlFor="postType"
                 className="text-[#FF914D] block text-lg font-medium mb-2"
               >
                 เลือกประเภทโพสต์
+                <span className="text-red-500 ml-1">*</span>
               </label>
               <div className="flex space-x-6">
                 <div>
@@ -382,6 +435,8 @@ const NewPost: React.FC = () => {
                   className="text-[#FF914D] block text-lg font-medium mb-2"
                 >
                   ชื่อแมว
+                  <span className="text-red-500 ml-1">*</span>
+
                 </label>
                 <input
                   id="name"
@@ -392,6 +447,7 @@ const NewPost: React.FC = () => {
                   className="w-fit px-4 py-2 border border-gray-300 rounded-lg"
                   required
                 />
+
               </div>
             )}
 
@@ -402,6 +458,8 @@ const NewPost: React.FC = () => {
                 className="text-[#FF914D] block text-lg font-medium mb-2"
               >
                 เพศ
+                <span className="text-red-500 ml-1">*</span>
+
               </label>
               <div className="flex space-x-6">
                 <div>
@@ -440,6 +498,8 @@ const NewPost: React.FC = () => {
                   className="text-[#FF914D] block text-lg font-medium mb-2"
                 >
                   สี
+                  <span className="text-red-500 ml-1">*</span>
+
                 </label>
                 <input
                   id="color"
@@ -459,6 +519,8 @@ const NewPost: React.FC = () => {
                   className="text-[#FF914D] block text-lg font-medium mb-2"
                 >
                   สายพันธุ์
+                  <span className="text-red-500 ml-1">*</span>
+
                 </label>
                 <input
                   id="breed"
@@ -473,12 +535,21 @@ const NewPost: React.FC = () => {
             </div>
             {/* Cat Info Input */}
             <div className="mb-6">
-              <label
-                htmlFor="catInfo"
-                className="text-[#FF914D] block text-lg font-medium mb-2"
-              >
-                จุดสังเกต
+              <label htmlFor="catInfo" className="block text-lg font-medium mb-2 text-[#FF914D]">
+                <div className="flex items-center space-x-2">
+                  <span>จุดสังเกต</span>
+                  <div className="relative group">
+                    <div className="w-5 h-5 bg-gray-300 text-white text-sm rounded-full flex items-center justify-center cursor-pointer">
+                      ?
+                    </div>
+                    <div className="absolute bottom-full mb-1 left-1/2 -translate-x-1/2 w-72 text-sm bg-black text-white p-2 rounded-md opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-10 text-center">
+                      ระบุลักษณะเฉพาะของแมว เช่น ลาย จุด หรือตำหนิบนตัวแมว<br />
+                      ช่วยให้ผู้พบเห็นจดจำได้ง่ายขึ้น
+                    </div>
+                  </div>
+                </div>
               </label>
+
               <textarea
                 id="catInfo"
                 value={catMarking}
@@ -492,6 +563,8 @@ const NewPost: React.FC = () => {
             <div className="mb-6">
               <label className="text-[#FF914D] block text-lg font-medium mb-2">
                 ตำแหน่ง
+                <span className="text-red-500 ml-1">*</span>
+
               </label>
               <GoogleMap
                 onLoad={() => setMapLoaded(true)}
@@ -519,6 +592,8 @@ const NewPost: React.FC = () => {
               <div className="mb-4">
                 <label className="text-[#FF914D] block text-lg font-medium mb-2">
                   วันที่หาย
+                  <span className="text-red-500 ml-1">*</span>
+
                 </label>
                 <input
                   type="date"
@@ -532,12 +607,20 @@ const NewPost: React.FC = () => {
 
             {/* extra content Textarea */}
             <div className="mb-6">
-              <label
-                htmlFor="extraDetails"
-                className="text-[#FF914D] block text-lg font-medium mb-2"
-              >
-                รายละเอียดเพิ่มเติม
+              <label htmlFor="extraDetails" className="block text-lg font-medium mb-2 text-[#FF914D]">
+                <div className="flex items-center space-x-2">
+                  <span>รายละเอียดเพิ่มเติม</span>
+                  <div className="relative group">
+                    <div className="w-5 h-5 bg-gray-300 text-white text-sm rounded-full flex items-center justify-center cursor-pointer">
+                      ?
+                    </div>
+                    <div className="absolute top-full mt-1 left-1/2 -translate-x-1/2 w-72 text-sm bg-black text-white p-3 rounded-md opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-10">
+                      ระบุรายละเอียดเพิ่มเติม เช่น สถานที่หาย/พบ ช่วงเวลาที่หาย หรือพฤติกรรมพิเศษของแมว
+                    </div>
+                  </div>
+                </div>
               </label>
+
               <textarea
                 id="extraDetails"
                 value={other_information}
@@ -546,27 +629,38 @@ const NewPost: React.FC = () => {
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg"
               />
             </div>
+
             {/* Email Section */}
             <div className="mb-4 flex items-center space-x-4">
-              <label
-                htmlFor="email"
-                className="text-[#FF914D] text-lg font-medium"
-              >
+              <label htmlFor="email" className="text-[#FF914D] text-lg font-medium flex items-center">
                 รับแจ้งเตือนผ่าน Email
+                <div className="relative group ml-2">
+                  <div className="w-5 h-5 bg-gray-300 text-white text-sm rounded-full flex items-center justify-center cursor-pointer">
+                    ?
+                  </div>
+                  <div className="absolute top-full mt-1 left-1/2 -translate-x-1/2 w-72 text-sm bg-black text-white p-3 rounded-md opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-10">
+                    หากเลือก "รับ" ระบบจะส่งอีเมลแจ้งเตือนเมื่อมีโพสต์แมวที่มีลักษณะคล้ายกันปรากฏขึ้น
+                    <br />
+                    <span className="block mt-2 text-gray-300 text-xs">
+                      * อีเมลอาจเข้าไปอยู่ในกล่อง Spam หรือ Junk Mail
+                    </span>
+                  </div>
+                </div>
               </label>
+
               <div className="flex items-center">
                 <input
                   id="email"
                   type="checkbox"
                   value="Email"
-                  onChange={(e) =>
-                    setEmailPreference(e.target.checked ? true : false)
-                  }
+                  onChange={(e) => setEmailPreference(e.target.checked)}
                   className="mr-2"
                 />
                 <label htmlFor="email">รับ</label>
               </div>
             </div>
+
+
             {/* Submit Button */}
             <div className="mb-6 flex items-end space-x-4">
               <button

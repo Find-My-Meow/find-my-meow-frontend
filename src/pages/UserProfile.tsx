@@ -30,10 +30,12 @@ const UserProfile = () => {
       {/* User Information */}
       <div className="flex flex-col items-center mt-6 p-6 bg-white shadow-md rounded-lg max-w-md mx-auto">
         <img
-          src={user.picture || "https://via.placeholder.com/100"}
+          src={user.picture}
           alt="User Profile"
-          className="w-24 h-24 rounded-full border border-gray-300"
+          referrerPolicy="no-referrer"
+          className="w-24 h-24 rounded-full border border-gray-300 object-cover"
         />
+
         <h2 className="text-xl font-semibold mt-4">{user.name}</h2>
         <p className="text-gray-600">{user.email}</p>
       </div>

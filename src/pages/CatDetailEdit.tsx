@@ -3,6 +3,8 @@ import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 import { GoogleMap, Marker } from "@react-google-maps/api";
 import Swal from "sweetalert2";
+import heic2any from "heic2any";
+import { MutatingDots } from "react-loader-spinner";
 
 interface Post {
   user_id: string;
@@ -54,6 +56,7 @@ const CatDetailEdit = () => {
     null
   );
   const [mapLoaded, setMapLoaded] = useState(false);
+  const [isLoadingImage, setIsLoadingImage] = useState(false);
   const navigate = useNavigate();
 
   const defaultCenter = { lat: 13.7563, lng: 100.5018 }; // Bangkok
@@ -296,12 +299,44 @@ const CatDetailEdit = () => {
   };
 
   // Handle Image Upload
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      setImage(e.target.files[0]);
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsLoadingImage(true); // start loading
+
+    if (
+      file.type === "image/heic" ||
+      file.name.toLowerCase().endsWith(".heic")
+    ) {
+      try {
+        const convertedBlob = await heic2any({
+          blob: file,
+          toType: "image/jpeg",
+          quality: 0.9,
+        });
+
+        const jpegFile = new File(
+          [convertedBlob as Blob],
+          file.name.replace(/\.heic$/i, ".jpg"),
+          { type: "image/jpeg" }
+        );
+
+        setImage(jpegFile);
+      } catch (error) {
+        console.error("Failed to convert HEIC:", error);
+        Swal.fire({
+          icon: "error",
+          title: "ไม่สามารถแสดงรูปภาพไฟล์ HEIC ได้",
+          text: "กรุณาเลือกรูปภาพที่เป็น JPG หรือ PNG",
+        });
+      }
+    } else {
+      setImage(file);
       setExistingImage(null);
     }
+    setIsLoadingImage(false); // end loading
   };
+
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
@@ -343,7 +378,23 @@ const CatDetailEdit = () => {
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
           >
-            {image ? (
+            {isLoadingImage ? (
+              <div className="h-[30rem] w-[30rem] flex flex-col items-center justify-center">
+                <MutatingDots
+                  visible={true}
+                  height="100"
+                  width="100"
+                  color="#FF914D"
+                  secondaryColor="#FF914D"
+                  radius="12.5"
+                  ariaLabel="mutating-dots-loading"
+                  wrapperStyle={{}}
+                  wrapperClass=""
+                />
+
+                <p className="text-[#FF914D] text-lg">กำลังโหลดรูปภาพ...</p>
+              </div>
+            ) : image ? (
               <>
                 <label
                   htmlFor="fileUpload"
@@ -434,6 +485,7 @@ const CatDetailEdit = () => {
                 className="text-[#FF914D] block text-lg font-medium mb-2"
               >
                 เลือกประเภทโพสต์
+                <span className="text-red-500 ml-1">*</span>
               </label>
               <div className="flex space-x-6">
                 {["lost", "found", "adoption"].map((type) => (
@@ -471,6 +523,7 @@ const CatDetailEdit = () => {
                   className="text-[#FF914D] block text-lg font-medium mb-2"
                 >
                   ชื่อแมว
+                  <span className="text-red-500 ml-1">*</span>
                 </label>
                 <input
                   id="name"
@@ -488,6 +541,7 @@ const CatDetailEdit = () => {
             <div className="mb-4">
               <label className="text-[#FF914D] block text-lg font-medium mb-2">
                 เพศ
+                <span className="text-red-500 ml-1">*</span>
               </label>
               <div className="flex space-x-6">
                 <div>
@@ -526,6 +580,7 @@ const CatDetailEdit = () => {
                   className="text-[#FF914D] block text-lg font-medium mb-2"
                 >
                   สี
+                  <span className="text-red-500 ml-1">*</span>
                 </label>
                 <input
                   id="color"
@@ -545,6 +600,7 @@ const CatDetailEdit = () => {
                   className="text-[#FF914D] block text-lg font-medium mb-2"
                 >
                   สายพันธุ์
+                  <span className="text-red-500 ml-1">*</span>
                 </label>
                 <input
                   id="breed"
@@ -561,9 +617,20 @@ const CatDetailEdit = () => {
             <div className="mb-6">
               <label
                 htmlFor="catInfo"
-                className="text-[#FF914D] block text-lg font-medium mb-2"
+                className="text-[#FF914D] block text-lg font-medium mb-2 text-[#FF914D]"
               >
-                จุดสังเกต
+                <div className="flex items-center space-x-2">
+                  <span>จุดสังเกต</span>
+                  <div className="relative group">
+                    <div className="w-5 h-5 bg-gray-300 text-white text-sm rounded-full flex items-center justify-center cursor-pointer">
+                      ?
+                    </div>
+                    <div className="absolute bottom-full mb-1 left-1/2 -translate-x-1/2 w-72 text-sm bg-black text-white p-2 rounded-md opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-10 text-center">
+                      ระบุลักษณะเฉพาะของแมว เช่น ลาย จุด หรือตำหนิบนตัวแมว<br />
+                      ช่วยให้ผู้พบเห็นจดจำได้ง่ายขึ้น
+                    </div>
+                  </div>
+                </div>
               </label>
               <textarea
                 id="catInfo"
@@ -578,6 +645,7 @@ const CatDetailEdit = () => {
             <div className="mb-6">
               <label className="text-[#FF914D] block text-lg font-medium mb-2">
                 ตำแหน่ง
+                <span className="text-red-500 ml-1">*</span>
               </label>
               <GoogleMap
                 onLoad={() => setMapLoaded(true)}
@@ -607,6 +675,7 @@ const CatDetailEdit = () => {
               <div className="mb-4">
                 <label className="text-[#FF914D] block text-lg font-medium mb-2">
                   วันที่หาย
+                  <span className="text-red-500 ml-1">*</span>
                 </label>
                 <input
                   type="date"
@@ -622,9 +691,18 @@ const CatDetailEdit = () => {
             <div className="mb-6">
               <label
                 htmlFor="extraDetails"
-                className="text-[#FF914D] block text-lg font-medium mb-2"
-              >
-                รายละเอียดเพิ่มเติม
+                className="text-[#FF914D] block text-lg font-medium mb-2 text-[#FF914D]">
+                <div className="flex items-center space-x-2">
+                  <span>รายละเอียดเพิ่มเติม</span>
+                  <div className="relative group">
+                    <div className="w-5 h-5 bg-gray-300 text-white text-sm rounded-full flex items-center justify-center cursor-pointer">
+                      ?
+                    </div>
+                    <div className="absolute top-full mt-1 left-1/2 -translate-x-1/2 w-72 text-sm bg-black text-white p-3 rounded-md opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-10">
+                      ระบุรายละเอียดเพิ่มเติม เช่น สถานที่หาย/พบ ช่วงเวลาที่หาย หรือพฤติกรรมพิเศษของแมว
+                    </div>
+                  </div>
+                </div>
               </label>
               <textarea
                 id="extraDetails"
@@ -638,9 +716,20 @@ const CatDetailEdit = () => {
             <div className="mb-4 flex items-center space-x-4">
               <label
                 htmlFor="email"
-                className="text-[#FF914D] text-lg font-medium"
-              >
+                className="text-[#FF914D] text-lg font-medium flex items-center">
                 รับแจ้งเตือนผ่าน Email
+                <div className="relative group ml-2">
+                  <div className="w-5 h-5 bg-gray-300 text-white text-sm rounded-full flex items-center justify-center cursor-pointer">
+                    ?
+                  </div>
+                  <div className="absolute top-full mt-1 left-1/2 -translate-x-1/2 w-72 text-sm bg-black text-white p-3 rounded-md opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-10">
+                    หากเลือก "รับ" ระบบจะส่งอีเมลแจ้งเตือนเมื่อมีโพสต์แมวที่มีลักษณะคล้ายกันปรากฏขึ้น
+                    <br />
+                    <span className="block mt-2 text-gray-300 text-xs">
+                      * อีเมลอาจเข้าไปอยู่ในกล่อง Spam หรือ Junk Mail
+                    </span>
+                  </div>
+                </div>
               </label>
               <div className="flex items-center">
                 <input
@@ -653,6 +742,7 @@ const CatDetailEdit = () => {
                 <label htmlFor="email">รับ</label>
               </div>
             </div>
+
             {/* Submit Button */}
             <div className="mb-6 flex items-end space-x-4">
               <button
