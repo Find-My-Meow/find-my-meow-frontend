@@ -172,8 +172,8 @@ const CatDetailEdit = () => {
     formDataToSend.append(
       "email_notification",
       emailPreference?.toString() ||
-        formData?.email_notification?.toString() ||
-        "false"
+      formData?.email_notification?.toString() ||
+      "false"
     );
     formDataToSend.append("post_type", postType || formData?.post_type || "");
     formDataToSend.append("status", status || "active");
@@ -362,24 +362,24 @@ const CatDetailEdit = () => {
   };
 
   return (
-    <div className="h-full">
+    <div className="h-full overflow-auto">
       {/* Title outside the box, centered */}
       <div className="flex justify-center items-center pt-20 mb-8">
         <h1 className="text-3xl font-bold">แก้ไขโพสต์</h1>
         <h1>{formData?.email_notification}</h1>
       </div>
 
-      <div className="max-w-6xl mx-auto bg-[#FFE9DB] shadow-md rounded-lg flex">
+      <div className="max-w-6xl mx-auto bg-[#FFE9DB] shadow-md rounded-lg flex flex-col lg:flex-row">
         {/* Left side: Upload photo section */}
-        <div className="flex justify-start items-center w-1/2 p-6">
+        <div className="flex justify-center items-center w-full lg:w-1/2 p-6">
           <div
-            className="w-full h-64 border-2 border-dashed border-gray-300 flex flex-col justify-center items-center rounded-lg bg-white"
+            className="w-full max-w-xl h-[32rem] border-2 border-dashed border-gray-300 flex flex-col justify-center items-center rounded-lg bg-white overflow-hidden"
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
           >
             {isLoadingImage ? (
-              <div className="h-[30rem] w-[30rem] flex flex-col items-center justify-center">
+              <div className="h-full w-full flex flex-col items-center justify-center text-center">
                 <MutatingDots
                   visible={true}
                   height="100"
@@ -388,11 +388,8 @@ const CatDetailEdit = () => {
                   secondaryColor="#FF914D"
                   radius="12.5"
                   ariaLabel="mutating-dots-loading"
-                  wrapperStyle={{}}
-                  wrapperClass=""
                 />
-
-                <p className="text-[#FF914D] text-lg">กำลังโหลดรูปภาพ...</p>
+                <p className="text-[#FF914D] text-lg mt-4">กำลังโหลดรูปภาพ...</p>
               </div>
             ) : image ? (
               <>
@@ -403,7 +400,7 @@ const CatDetailEdit = () => {
                   <img
                     src={URL.createObjectURL(image)}
                     alt="Selected"
-                    className="w-full h-full object-cover rounded-lg cursor-pointer"
+                    className="max-h-full max-w-full object-contain rounded-lg cursor-pointer"
                   />
                   <input
                     id="fileUpload"
@@ -413,7 +410,6 @@ const CatDetailEdit = () => {
                     className="hidden"
                   />
                 </label>
-                <div className="mt-auto p-2 text-black">{image.name}</div>
               </>
             ) : existingImage ? (
               <>
@@ -422,10 +418,11 @@ const CatDetailEdit = () => {
                   className="w-full h-full flex items-center justify-center"
                 >
                   <img
-                    src={`${existingImage.image_path}`}
+                    src={existingImage.image_path}
                     alt="Existing"
-                    className="w-full h-full object-cover rounded-lg cursor-pointer"
+                    className="max-h-full max-w-full object-contain rounded-lg cursor-pointer"
                   />
+
                   <input
                     id="fileUpload"
                     type="file"
@@ -434,12 +431,10 @@ const CatDetailEdit = () => {
                     className="hidden"
                   />
                 </label>
-                <div className="mt-auto p-2 text-black">
-                  {existingImage.image_path}
-                </div>
+
               </>
             ) : (
-              <>
+              <div className="flex flex-col items-center justify-center h-full text-center px-4">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   className="h-10 w-10 text-black mb-2"
@@ -454,27 +449,26 @@ const CatDetailEdit = () => {
                     d="M3 16l4 4m0 0l4-4m-4 4V4m12 12l-4 4m0 0l-4-4m4 4V4"
                   />
                 </svg>
-                <p className="text-black">Drag and Drop here</p>
-                <p className="text-black">or</p>
-                <div className="flex flex-col items-center">
-                  <label
-                    htmlFor="fileUpload"
-                    className="px-4 py-2 bg-[#FFE9DB] text-black rounded-lg cursor-pointer hover:bg-[#FFA864] transition"
-                  >
-                    Select File
-                  </label>
-                  <input
-                    id="fileUpload"
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageChange}
-                    className="hidden"
-                  />
-                </div>
-              </>
+                <p className="text-black mb-1">Drag and Drop here</p>
+                <p className="text-black mb-3">or</p>
+                <label
+                  htmlFor="fileUpload"
+                  className="px-4 py-2 bg-[#FFE9DB] text-black rounded-lg cursor-pointer hover:bg-[#FFA864] transition"
+                >
+                  Select File
+                </label>
+                <input
+                  id="fileUpload"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  className="hidden"
+                />
+              </div>
             )}
           </div>
         </div>
+
 
         {/* Right side: Form section */}
         <div className="w-2/3 p-6">
