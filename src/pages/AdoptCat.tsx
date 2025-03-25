@@ -11,16 +11,14 @@ const AdoptCat = () => {
   };
 
   return (
-    <div className="h-full">
+    <div className="h-full px-4 md:px-10">
       {/* Title at the top center */}
       <div className="flex justify-center items-start">
-        <div className="text-center">
-          <h1 className="text-3xl font-bold">ประกาศหาบ้านให้แมว</h1>
-        </div>
+        <h1 className="text-3xl font-bold text-center">ประกาศหาบ้านให้แมว</h1>
       </div>
 
       {/* Button aligned to the right */}
-      <div className="flex justify-end pt-4 mt-2 font-semibold">
+      <div className="flex justify-end">
         <DefaultButton
           title="สร้างโพสต์ใหม่"
           color="primary"

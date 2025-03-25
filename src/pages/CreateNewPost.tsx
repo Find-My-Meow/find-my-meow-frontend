@@ -276,7 +276,7 @@ const NewPost: React.FC = () => {
   }, [mapLoaded]);
 
   return (
-    <div className="h-full mb-20">
+    <div className="h-full overflow-auto">
       {/* Title outside the box, centered */}
       <div className="flex justify-center items-center mb-8">
         <h1 className="text-3xl font-bold">สร้างโพสต์ใหม่</h1>
@@ -286,13 +286,13 @@ const NewPost: React.FC = () => {
         {/* Left side: Upload photo section */}
         <div className="flex justify-center items-center w-full md:w-1/2 p-6">
           <div
-            className="border-2 border-dashed border-gray-300 flex flex-col justify-center items-center rounded-lg bg-white"
+            className="w-full max-w-xl h-[32rem] border-2 border-dashed border-gray-300 flex flex-col justify-center items-center rounded-lg bg-white overflow-hidden"
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
           >
             {isLoadingImage ? (
-              <div className="h-[30rem] w-[30rem] flex flex-col items-center justify-center">
+              <div className="h-[30rem] w-[30rem] flex flex-col items-center justify-center text-center">
                 <MutatingDots
                   visible={true}
                   height="100"
@@ -308,7 +308,7 @@ const NewPost: React.FC = () => {
                 <p className="text-[#FF914D] text-lg">กำลังโหลดรูปภาพ...</p>
               </div>
             ) : !image ? (
-              <div className="h-[30rem] w-[30rem] justify-items-center content-center">
+              <div className="h-[30rem] w-[30rem] flex flex-col items-center justify-center text-center">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   className="h-10 w-10 text-black mb-2"
@@ -350,8 +350,9 @@ const NewPost: React.FC = () => {
                   <img
                     src={URL.createObjectURL(image)}
                     alt="Selected"
-                    className="w-full h-full object-cover rounded-lg cursor-pointer"
+                    className="max-h-full max-w-full object-contain rounded-lg cursor-pointer"
                   />
+
                   <input
                     id="fileUpload"
                     type="file"
@@ -361,7 +362,6 @@ const NewPost: React.FC = () => {
                   />
                 </label>
 
-                <div className="mt-auto p-2 text-black">{image.name}</div>
               </>
             )}
           </div>

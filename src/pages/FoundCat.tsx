@@ -11,28 +11,30 @@ const FoundCat = () => {
   };
   
   return (
-    <div className="h-full">
-      {/* Title at the top center */}
-      <div className="flex justify-center items-start">
-        <div className="text-center">
-          <h1 className="text-3xl font-bold">ประกาศตามหาเจ้าของแมว</h1>
-        </div>
-      </div>
-
-      {/* Button aligned to the right */}
-      <div className="flex justify-end pt-4 mt-2 font-semibold">
-        <DefaultButton
-          title="สร้างโพสต์ใหม่"
-          color="primary"
-          onClick={handleClick}
-        />
-      </div>
-
-      {/* Grid layout */}
-      <div className="flex justify-center mt-10">
-        <Card postType={"found"} />
-      </div>
+    <div className="h-full px-4 md:px-10">
+    {/* Title at the top center */}
+    <div className="flex justify-center items-start mt-6">
+      <h1 className="text-3xl font-bold text-center">
+        ประกาศตามหาเจ้าของแมว
+      </h1>
     </div>
+  
+    {/* Button aligned to the right */}
+    <div className="flex justify-end">
+      <DefaultButton
+        title="สร้างโพสต์ใหม่"
+        color="primary"
+        onClick={handleClick}
+        classname="w-fit" // Make sure it's not expanding
+      />
+    </div>
+  
+    {/* Grid layout */}
+    <div className="flex justify-center mt-10">
+      <Card postType={"found"} />
+    </div>
+  </div>
+  
   );
 };
 
