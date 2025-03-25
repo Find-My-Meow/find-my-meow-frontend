@@ -186,8 +186,6 @@ const Result = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-x-20 gap-y-10 mt-8">
               {filteredResults.map((post: any) => (
                 <div
-                  key={post.post_id}
-                  onClick={() => navigate(`/cat-detail/${post.post_id}`)}
                   className="cursor-pointer rounded-lg bg-[#FFE9DB] shadow-lg flex w-[35rem] h-auto"
                 >
                   {/* Image */}
@@ -223,17 +221,6 @@ const Result = () => {
                         <strong className="text-[#FF914D]">สายพันธุ์:</strong>{" "}
                         {post.breed}
                       </li>
-                      <li>
-                        <strong className="text-[#FF914D]">
-                          {post.post_type === "lost"
-                            ? "สถานที่หาย:"
-                            : post.post_type === "found"
-                            ? "สถานที่พบ:"
-                            : "สถานที่:"}
-                        </strong>{" "}
-                        แขวง{post.location.sub_district} เขต
-                        {post.location.district} {post.location.province}
-                      </li>
                     </ul>
                     {post.post_type === "lost" && post.lost_date && (
                       <p className="text-sm text-gray-800 mt-2">
@@ -245,9 +232,21 @@ const Result = () => {
                         })}
                       </p>
                     )}
+                     <div className="w-full flex justify-center mt-20">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation(); // prevent triggering card click
+                      navigate(`/cat-detail/${post.post_id}`);
+                    }}
+                    className="px-4 py-2 bg-[#FF914D] text-white font-semibold rounded-lg hover:bg-orange-500 transition whitespace-nowrap"
+                  >
+                    เพิ่มเติม
+                  </button>
+                </div>
                   </div>
                 </div>
               ))}
+              
             </div>
           ) : (
             // post not found
