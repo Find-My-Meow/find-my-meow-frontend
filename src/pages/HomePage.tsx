@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import DefaultButton from "../components/DefaultButton";
-import { GoogleMap, Marker, OverlayView } from "@react-google-maps/api";
+import { GoogleMap, OverlayView } from "@react-google-maps/api";
 import { useEffect, useRef, useState } from "react";
 interface Post {
   user_id: string;
@@ -141,7 +141,7 @@ const HomePage = () => {
           </div>
         </div>
 
-        {/* Right Section: Image */}
+        {/* Right Section: Cat Image */}
         <div className="w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-xl">
           <img
             src="src/assets/cat-element.png"
@@ -149,12 +149,14 @@ const HomePage = () => {
             className="w-full h-auto object-contain"
           />
         </div>
-
       </div>
-      <div className="text-center text-xl font-semibold text-gray-700 mb-4">
+
+      {/* 🗺️ Map Section Title - add spacing above */}
+      <div className="mt-10 text-center text-xl font-semibold text-gray-700 mb-4">
         🗺️ สำรวจตำแหน่ง แมวที่หาย / หาเจ้าของ / รอรับเลี้ยง ในพื้นที่ของคุณ
       </div>
-      <div className="w-full max-w-6xl mx-auto h-[400px]">
+
+      <div className="mt-12 w-full max-w-6xl mx-auto h-[400px]">
         <GoogleMap
           onLoad={handleMapLoad}
           mapContainerStyle={{ width: "100%", height: "100%" }}
