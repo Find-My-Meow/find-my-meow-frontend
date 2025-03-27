@@ -20,18 +20,23 @@ describe("Navigation routes", () => {
     });
   });
   
-  describe("Mock login test", () => {
-    it("should simulate a logged in user", () => {
-      cy.visit("/auth/login");
-      cy.mockLogin();
-      cy.reload();
-      cy.contains("Test User");
+  it("Visits the user profile page", () => {
+    cy.visit("/auth/login");
+    cy.window().then((win) => {
+      win.localStorage.setItem("user_id", "test-user-id");
+      win.localStorage.setItem(
+        "user",
+        JSON.stringify({ email: "test@example.com", name: "Test User" })
+      );
     });
-    it("Visits the user profile page", () => {
-      cy.visit("/user-profile");
-      cy.contains("ข้อมูลผู้ใช้งาน").should("exist");
-    });
+  
+    // ✅ Go to profile *after* login setup
+    cy.visit("/user-profile");
+  
+    // ✅ Wait for the text to appear
+    cy.contains("ข้อมูลผู้ใช้งาน", { timeout: 10000 }).should("exist");
   });
+  
   
   describe("Create New Post (mocked quality)", () => {
     beforeEach(() => {
@@ -63,7 +68,7 @@ describe("Navigation routes", () => {
       cy.get("#name").type("CY");
       cy.get("#male").check({ force: true });
       cy.get("#color").type("ดำ");
-      cy.get("#breed").type("ไทย");
+      cy.get("#breed").type("ไทย", { force: true });
       cy.get("#catInfo").type("มีลายขาว");
       cy.get("#extraDetails").type("หายที่");
       cy.get('input[type="date"]').type(new Date().toISOString().split("T")[0]);

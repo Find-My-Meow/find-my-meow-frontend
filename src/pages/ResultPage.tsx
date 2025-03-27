@@ -107,7 +107,7 @@ const Result = () => {
   return (
     <div className="h-full px-6 pb-20">
       {/* Title */}
-      <div className="flex justify-center items-start mt-10">
+      <div className="flex justify-center items-start">
         <h1 className="text-3xl font-bold">ผลการค้นหา</h1>
       </div>
 
@@ -223,28 +223,32 @@ const Result = () => {
                         <strong className="text-[#FF914D]">สายพันธุ์:</strong>{" "}
                         {post.breed}
                       </li>
-                      <li>
-                        <strong className="text-[#FF914D]">
-                          {post.post_type === "lost"
-                            ? "สถานที่หาย:"
-                            : post.post_type === "found"
-                            ? "สถานที่พบ:"
-                            : "สถานที่:"}
-                        </strong>{" "}
-                        แขวง{post.location.sub_district} เขต
-                        {post.location.district} {post.location.province}
-                      </li>
+                      {post.post_type === "lost" && post.lost_date && (
+                        <p className="text-sm text-gray-800 mt-2">
+                          <strong className="text-[#FF914D]">วันที่หาย:</strong>{" "}
+                          {new Date(post.lost_date).toLocaleDateString(
+                            "th-TH",
+                            {
+                              year: "numeric",
+                              month: "2-digit",
+                              day: "2-digit",
+                            }
+                          )}
+                        </p>
+                      )}
                     </ul>
-                    {post.post_type === "lost" && post.lost_date && (
-                      <p className="text-sm text-gray-800 mt-2">
-                        <strong className="text-[#FF914D]">วันที่หาย:</strong>{" "}
-                        {new Date(post.lost_date).toLocaleDateString("th-TH", {
-                          year: "numeric",
-                          month: "2-digit",
-                          day: "2-digit",
-                        })}
-                      </p>
-                    )}
+
+                    {/* <div className="w-full flex justify-center mt-6">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/cat-detail/${post.post_id}`);
+                        }}
+                        className="px-4 py-2 bg-[#FF914D] text-white font-semibold rounded-lg hover:bg-orange-500 transition whitespace-nowrap"
+                      >
+                        ดูเพิ่มเติม
+                      </button>
+                    </div> */}
                   </div>
                 </div>
               ))}

@@ -12,14 +12,16 @@ const LostCat = () => {
   };
 
   return (
-    <div className="h-full px-4 md:px-10">
+    <div className="h-full mb-20">
       {/* Title at the top center */}
       <div className="flex justify-center items-start">
-        <h1 className="text-3xl font-bold text-center">ประกาศตามหาแมวหาย</h1>
+        <div className="text-center">
+          <h1 className="text-3xl font-bold">ประกาศตามหาแมวหาย</h1>
+        </div>
       </div>
 
       {/* Button aligned to the right */}
-      <div className="flex justify-end">
+      <div className="flex justify-end pt-4 mt-2 font-semibold">
         <DefaultButton
           title="สร้างโพสต์ใหม่"
           color="primary"
@@ -28,7 +30,7 @@ const LostCat = () => {
       </div>
 
       {/* Grid layout */}
-      <div className="flex justify-center">
+      <div className="flex justify-center mt-10">
         <Card postType={"lost"} />
       </div>
     </div>

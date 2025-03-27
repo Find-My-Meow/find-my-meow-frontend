@@ -5,6 +5,8 @@ import { GoogleMap, Marker } from "@react-google-maps/api";
 import Swal from "sweetalert2";
 import heic2any from "heic2any";
 import { MutatingDots } from "react-loader-spinner";
+import { MdOutlineFileUpload } from "react-icons/md";
+import { IoIosCloseCircleOutline } from "react-icons/io";
 
 interface Post {
   user_id: string;
@@ -172,8 +174,8 @@ const CatDetailEdit = () => {
     formDataToSend.append(
       "email_notification",
       emailPreference?.toString() ||
-      formData?.email_notification?.toString() ||
-      "false"
+        formData?.email_notification?.toString() ||
+        "false"
     );
     formDataToSend.append("post_type", postType || formData?.post_type || "");
     formDataToSend.append("status", status || "active");
@@ -240,7 +242,7 @@ const CatDetailEdit = () => {
     }
 
     Swal.fire({
-      title: "กำลังสร้างโพสต์...",
+      title: "กำลังอัปเดตโพสต์...",
       allowOutsideClick: false,
       didOpen: () => {
         Swal.showLoading();
@@ -362,24 +364,28 @@ const CatDetailEdit = () => {
   };
 
   return (
-    <div className="h-full overflow-auto">
+    <div className="h-full mb-20">
       {/* Title outside the box, centered */}
-      <div className="flex justify-center items-center pt-20 mb-8">
+      <div className="flex justify-center items-center mb-8">
         <h1 className="text-3xl font-bold">แก้ไขโพสต์</h1>
         <h1>{formData?.email_notification}</h1>
       </div>
-
-      <div className="max-w-6xl mx-auto bg-[#FFE9DB] shadow-md rounded-lg flex flex-col lg:flex-row">
+      <div className="max-w-6xl mx-auto bg-[#FFE9DB] shadow-md rounded-lg flex flex-col md:flex-row pt-4">
         {/* Left side: Upload photo section */}
-        <div className="flex justify-center items-center w-full lg:w-1/2 p-6">
+        <div className="flex flex-col justify-start items-center w-full md:w-1/2 p-6 pr-2 space-y-2">
+          <div className="w-full">
+            <label className="text-[#FF914D] block text-lg font-medium text-center">
+              อัพโหลดรูปภาพแมว
+            </label>
+          </div>
           <div
-            className="w-full max-w-xl h-[32rem] border-2 border-dashed border-gray-300 flex flex-col justify-center items-center rounded-lg bg-white overflow-hidden"
+            className="w-full h-[500px] rounded-xl overflow-hidden border border-gray-300 shadow-sm bg-white flex items-center justify-center"
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
           >
             {isLoadingImage ? (
-              <div className="h-full w-full flex flex-col items-center justify-center text-center">
+              <div className="h-[30rem] w-[30rem] flex flex-col items-center justify-center">
                 <MutatingDots
                   visible={true}
                   height="100"
@@ -389,10 +395,19 @@ const CatDetailEdit = () => {
                   radius="12.5"
                   ariaLabel="mutating-dots-loading"
                 />
-                <p className="text-[#FF914D] text-lg mt-4">กำลังโหลดรูปภาพ...</p>
+
+                <p className="text-[#FF914D] text-lg">กำลังโหลดรูปภาพ...</p>
               </div>
             ) : image ? (
-              <>
+              <div className="w-full max-w-md h-[25rem] relative p-2">
+                <button
+                  type="button"
+                  onClick={() => setImage(null)}
+                  className="absolute -top-3 right-1 p-1 bg-white rounded-full text-red-500 text-3xl hover:text-red-600 transition z-10"
+                  title="ลบรูปภาพ"
+                >
+                  <IoIosCloseCircleOutline />
+                </button>
                 <label
                   htmlFor="fileUpload"
                   className="w-full h-full flex items-center justify-center"
@@ -400,7 +415,7 @@ const CatDetailEdit = () => {
                   <img
                     src={URL.createObjectURL(image)}
                     alt="Selected"
-                    className="max-h-full max-w-full object-contain rounded-lg cursor-pointer"
+                    className="w-full h-full object-contain"
                   />
                   <input
                     id="fileUpload"
@@ -410,19 +425,29 @@ const CatDetailEdit = () => {
                     className="hidden"
                   />
                 </label>
-              </>
+                <div className="mt-auto p-2 text-black text-sm text-center">
+                  {image.name}
+                </div>
+              </div>
             ) : existingImage ? (
-              <>
+              <div className="w-full max-w-md h-[25rem] relative p-2">
+                {/* <button
+                  type="button"
+                  onClick={() => setExistingImage(null)}
+                  className="absolute -top-3 right-1 p-1 bg-white rounded-full text-red-500 text-3xl hover:text-red-600 transition z-10"
+                  title="ลบรูปภาพ"
+                >
+                  <IoIosCloseCircleOutline />
+                </button> */}
                 <label
                   htmlFor="fileUpload"
-                  className="w-full h-full flex items-center justify-center"
+                  className="w-full h-full cursor-pointer block"
                 >
                   <img
-                    src={existingImage.image_path}
+                    src={`${existingImage.image_path}`}
                     alt="Existing"
-                    className="max-h-full max-w-full object-contain rounded-lg cursor-pointer"
+                    className="w-full h-full object-contain"
                   />
-
                   <input
                     id="fileUpload"
                     type="file"
@@ -431,47 +456,34 @@ const CatDetailEdit = () => {
                     className="hidden"
                   />
                 </label>
-
-              </>
+              </div>
             ) : (
-              <div className="flex flex-col items-center justify-center h-full text-center px-4">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-10 w-10 text-black mb-2"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M3 16l4 4m0 0l4-4m-4 4V4m12 12l-4 4m0 0l-4-4m4 4V4"
+              <div className="flex flex-col items-center justify-center text-center space-y-2">
+                <MdOutlineFileUpload className="text-5xl" />
+                <p className="text-black font-med">ลากและวางรูปภาพที่นี่</p>
+                <p className="text-black">หรือ</p>
+                <div className="flex flex-col items-center">
+                  <label
+                    htmlFor="fileUpload"
+                    className="px-4 py-2 bg-[#FFE9DB] text-black rounded-lg cursor-pointer hover:bg-[#FFA864] transition"
+                  >
+                    เลือกรูปภาพ
+                  </label>
+                  <input
+                    id="fileUpload"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                    className="hidden"
                   />
-                </svg>
-                <p className="text-black mb-1">Drag and Drop here</p>
-                <p className="text-black mb-3">or</p>
-                <label
-                  htmlFor="fileUpload"
-                  className="px-4 py-2 bg-[#FFE9DB] text-black rounded-lg cursor-pointer hover:bg-[#FFA864] transition"
-                >
-                  Select File
-                </label>
-                <input
-                  id="fileUpload"
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageChange}
-                  className="hidden"
-                />
+                </div>
               </div>
             )}
           </div>
         </div>
 
-
         {/* Right side: Form section */}
-        <div className="w-2/3 p-6">
+        <div className="w-full md:w-2/3 p-6 m-5 rounded-lg bg-white ">
           <form onSubmit={handleSubmit}>
             <div className="mb-4">
               <label
@@ -481,9 +493,9 @@ const CatDetailEdit = () => {
                 เลือกประเภทโพสต์
                 <span className="text-red-500 ml-1">*</span>
               </label>
-              <div className="flex space-x-6">
+              <div className="flex space-x-8 ml-2">
                 {["lost", "found", "adoption"].map((type) => (
-                  <div key={type}>
+                  <div key={type} className="flex items-center space-x-2">
                     <input
                       id={type}
                       type="checkbox"
@@ -493,7 +505,7 @@ const CatDetailEdit = () => {
                       onChange={() =>
                         setPostType(postType === type ? "" : type)
                       }
-                      className="mr-2"
+                      className="scale-150"
                     />
                     <label htmlFor={type}>
                       {
@@ -525,7 +537,7 @@ const CatDetailEdit = () => {
                   value={name || formData?.cat_name || ""}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="ชื่อแมว..."
-                  className="w-fit px-4 py-2 border border-gray-300 rounded-lg"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg"
                   required
                 />
               </div>
@@ -537,19 +549,19 @@ const CatDetailEdit = () => {
                 เพศ
                 <span className="text-red-500 ml-1">*</span>
               </label>
-              <div className="flex space-x-6">
-                <div>
+              <div className="flex space-x-8 ml-2">
+                <div className="flex items-center space-x-2">
                   <input
                     id="male"
                     type="checkbox"
                     value="male"
                     onChange={() => setGender(gender === "male" ? "" : "male")}
-                    className="mr-2"
+                    className="scale-150"
                     checked={gender === "male"}
                   />
                   <label htmlFor="male">เพศผู้</label>
                 </div>
-                <div>
+                <div className="flex items-center space-x-2">
                   <input
                     id="female"
                     type="checkbox"
@@ -557,7 +569,7 @@ const CatDetailEdit = () => {
                     onChange={() =>
                       setGender(gender === "female" ? "" : "female")
                     }
-                    className="mr-2"
+                    className="scale-150"
                     checked={gender === "female"}
                   />
                   <label htmlFor="female">เพศเมีย</label>
@@ -611,7 +623,7 @@ const CatDetailEdit = () => {
             <div className="mb-6">
               <label
                 htmlFor="catInfo"
-                className="text-[#FF914D] block text-lg font-medium mb-2 text-[#FF914D]"
+                className="block text-lg font-medium mb-2 text-[#FF914D]"
               >
                 <div className="flex items-center space-x-2">
                   <span>จุดสังเกต</span>
@@ -620,7 +632,8 @@ const CatDetailEdit = () => {
                       ?
                     </div>
                     <div className="absolute bottom-full mb-1 left-1/2 -translate-x-1/2 w-72 text-sm bg-black text-white p-2 rounded-md opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-10 text-center">
-                      ระบุลักษณะเฉพาะของแมว เช่น ลาย จุด หรือตำหนิบนตัวแมว<br />
+                      ระบุลักษณะเฉพาะของแมว เช่น ลาย จุด หรือตำหนิบนตัวแมว
+                      <br />
                       ช่วยให้ผู้พบเห็นจดจำได้ง่ายขึ้น
                     </div>
                   </div>
@@ -685,7 +698,8 @@ const CatDetailEdit = () => {
             <div className="mb-6">
               <label
                 htmlFor="extraDetails"
-                className="text-[#FF914D] block text-lg font-medium mb-2 text-[#FF914D]">
+                className="block text-lg font-medium mb-2 text-[#FF914D]"
+              >
                 <div className="flex items-center space-x-2">
                   <span>รายละเอียดเพิ่มเติม</span>
                   <div className="relative group">
@@ -693,7 +707,8 @@ const CatDetailEdit = () => {
                       ?
                     </div>
                     <div className="absolute top-full mt-1 left-1/2 -translate-x-1/2 w-72 text-sm bg-black text-white p-3 rounded-md opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-10">
-                      ระบุรายละเอียดเพิ่มเติม เช่น สถานที่หาย/พบ ช่วงเวลาที่หาย หรือพฤติกรรมพิเศษของแมว
+                      ระบุรายละเอียดเพิ่มเติม เช่น สถานที่หาย/พบ ช่วงเวลาที่หาย
+                      พฤติกรรมพิเศษของแมว ข้อมูลการติดต่อ
                     </div>
                   </div>
                 </div>
@@ -710,14 +725,16 @@ const CatDetailEdit = () => {
             <div className="mb-4 flex items-center space-x-4">
               <label
                 htmlFor="email"
-                className="text-[#FF914D] text-lg font-medium flex items-center">
+                className="text-[#FF914D] text-lg font-medium flex items-center"
+              >
                 รับแจ้งเตือนผ่าน Email
                 <div className="relative group ml-2">
                   <div className="w-5 h-5 bg-gray-300 text-white text-sm rounded-full flex items-center justify-center cursor-pointer">
                     ?
                   </div>
                   <div className="absolute top-full mt-1 left-1/2 -translate-x-1/2 w-72 text-sm bg-black text-white p-3 rounded-md opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-10">
-                    หากเลือก "รับ" ระบบจะส่งอีเมลแจ้งเตือนเมื่อมีโพสต์แมวที่มีลักษณะคล้ายกันปรากฏขึ้น
+                    หากเลือก "รับ"
+                    ระบบจะส่งอีเมลแจ้งเตือนเมื่อมีโพสต์แมวที่มีลักษณะคล้ายกันปรากฏขึ้น
                     <br />
                     <span className="block mt-2 text-gray-300 text-xs">
                       * อีเมลอาจเข้าไปอยู่ในกล่อง Spam หรือ Junk Mail
@@ -738,7 +755,7 @@ const CatDetailEdit = () => {
             </div>
 
             {/* Submit Button */}
-            <div className="mb-6 flex items-end space-x-4">
+            <div className="mb-6 flex space-x-4 justify-center">
               <button
                 type="submit"
                 className="px-6 py-2 bg-[#FF914D] text-white font-bold rounded-lg hover:bg-[#FFE9DB] transition "

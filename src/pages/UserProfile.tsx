@@ -19,10 +19,12 @@ const UserProfile = () => {
   }
 
   return (
-    <div className="h-full px-4 md:px-10">
+    <div className="h-full">
       {/* Title at the top center */}
       <div className="flex justify-center items-start">
-        <h1 className="text-3xl font-bold text-center">ข้อมูลผู้ใช้งาน</h1>
+        <div className="text-center">
+          <h1 className="text-3xl font-bold">ข้อมูลผู้ใช้งาน</h1>
+        </div>
       </div>
 
       {/* User Information */}
@@ -39,7 +41,7 @@ const UserProfile = () => {
       </div>
 
       {/* Button aligned to the right */}
-      <div className="flex justify-end">
+      <div className="flex justify-end pt-4 mt-2 font-semibold">
         <DefaultButton
           title="สร้างโพสต์ใหม่"
           color="primary"
