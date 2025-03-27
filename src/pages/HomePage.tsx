@@ -153,8 +153,11 @@ const HomePage = () => {
 
       {/* 🗺️ Map Section Title - add spacing above */}
       <div className="mt-10 text-center text-xl font-semibold text-gray-700 mb-4">
-        🗺️ สำรวจตำแหน่ง แมวที่หาย / หาเจ้าของ / รอรับเลี้ยง ในพื้นที่ของคุณ
+        🗺️ สำรวจตำแหน่งในพื้นที่ของคุณ
+        <br />
+        แมวหาย / แมวหาเจ้าของ / แมวหาบ้าน
       </div>
+
 
       <div className="mt-12 w-full max-w-6xl mx-auto h-[400px]">
         <GoogleMap
