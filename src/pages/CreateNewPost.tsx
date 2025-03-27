@@ -52,7 +52,6 @@ const NewPost: React.FC = () => {
     formData.append("other_information", other_information);
     formData.append("email_notification", emailPreference ? "true" : "false");
     formData.append("post_type", postType);
-    formData.append("status", "active");
 
     if (location) {
       formData.append(
@@ -368,7 +367,7 @@ const NewPost: React.FC = () => {
         </div>
 
         {/* Right side: Form section */}
-        <div className="w-full md:w-2/3 p-6">
+        <div className="w-full md:w-2/3 p-6 rounded-lg">
           <form onSubmit={handleSubmit}>
             <div className="mb-4">
 
