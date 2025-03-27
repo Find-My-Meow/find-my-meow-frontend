@@ -5,6 +5,8 @@ import heic2any from "heic2any";
 import { useNavigate } from "react-router-dom";
 import { GoogleMap, Marker } from "@react-google-maps/api";
 import { MutatingDots } from "react-loader-spinner";
+import { IoIosCloseCircleOutline } from "react-icons/io";
+import { MdOutlineFileUpload } from "react-icons/md";
 
 const NewPost: React.FC = () => {
   const [name, setName] = useState("");
@@ -52,7 +54,6 @@ const NewPost: React.FC = () => {
     formData.append("other_information", other_information);
     formData.append("email_notification", emailPreference ? "true" : "false");
     formData.append("post_type", postType);
-    formData.append("status", "active");
 
     if (location) {
       formData.append(
@@ -276,23 +277,28 @@ const NewPost: React.FC = () => {
   }, [mapLoaded]);
 
   return (
-    <div className="h-full overflow-auto">
+    <div className="h-full mb-20">
       {/* Title outside the box, centered */}
       <div className="flex justify-center items-center mb-8">
         <h1 className="text-3xl font-bold">สร้างโพสต์ใหม่</h1>
       </div>
 
-      <div className="max-w-6xl mx-auto bg-[#FFE9DB] shadow-md rounded-lg flex flex-col md:flex-row">
+      <div className="max-w-6xl mx-auto bg-[#FFE9DB] shadow-md rounded-lg flex flex-col md:flex-row pt-4">
         {/* Left side: Upload photo section */}
-        <div className="flex justify-center items-center w-full md:w-1/2 p-6">
+        <div className="flex flex-col justify-start items-center w-full md:w-1/2 p-6 pr-2 space-y-2">
+          <div className="w-full">
+            <label className="text-[#FF914D] block text-lg font-medium text-center">
+              อัพโหลดรูปภาพแมว
+            </label>
+          </div>
           <div
-            className="w-full max-w-xl h-[32rem] border-2 border-dashed border-gray-300 flex flex-col justify-center items-center rounded-lg bg-white overflow-hidden"
+            className="w-full h-[500px] rounded-xl overflow-hidden border border-gray-300 shadow-sm bg-white flex items-center justify-center"
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
           >
             {isLoadingImage ? (
-              <div className="h-[30rem] w-[30rem] flex flex-col items-center justify-center text-center">
+              <div className="h-[30rem] w-[30rem] flex flex-col items-center justify-center">
                 <MutatingDots
                   visible={true}
                   height="100"
@@ -301,36 +307,21 @@ const NewPost: React.FC = () => {
                   secondaryColor="#FF914D"
                   radius="12.5"
                   ariaLabel="mutating-dots-loading"
-                  wrapperStyle={{}}
-                  wrapperClass=""
                 />
 
                 <p className="text-[#FF914D] text-lg">กำลังโหลดรูปภาพ...</p>
               </div>
             ) : !image ? (
-              <div className="h-[30rem] w-[30rem] flex flex-col items-center justify-center text-center">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-10 w-10 text-black mb-2"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M3 16l4 4m0 0l4-4m-4 4V4m12 12l-4 4m0 0l-4-4m4 4V4"
-                  />
-                </svg>
-                <p className="text-black">Drag and Drop here</p>
-                <p className="text-black">or</p>
+              <div className="flex flex-col items-center justify-center text-center space-y-2">
+                <MdOutlineFileUpload className="text-5xl" />
+                <p className="text-black font-med">ลากและวางรูปภาพที่นี่</p>
+                <p className="text-black">หรือ</p>
                 <div className="flex flex-col items-center">
                   <label
                     htmlFor="fileUpload"
                     className="px-4 py-2 bg-[#FFE9DB] text-black rounded-lg cursor-pointer hover:bg-[#FFA864] transition"
                   >
-                    Select File
+                    เลือกรูปภาพ
                   </label>
                   <input
                     id="fileUpload"
@@ -342,17 +333,24 @@ const NewPost: React.FC = () => {
                 </div>
               </div>
             ) : (
-              <>
+              <div className="w-full max-w-md h-[25rem] relative p-2">
+                <button
+                  type="button"
+                  onClick={() => setImage(null)}
+                  className="absolute -top-3 right-1 p-1 bg-white rounded-full text-red-500 text-3xl hover:text-red-600 transition z-10"
+                  title="ลบรูปภาพ"
+                >
+                  <IoIosCloseCircleOutline />
+                </button>
                 <label
                   htmlFor="fileUpload"
-                  className="w-full h-full flex items-center justify-center"
+                  className="w-full h-full cursor-pointer block"
                 >
                   <img
                     src={URL.createObjectURL(image)}
                     alt="Selected"
-                    className="max-h-full max-w-full object-contain rounded-lg cursor-pointer"
+                    className="w-full h-full object-contain"
                   />
-
                   <input
                     id="fileUpload"
                     type="file"
@@ -362,16 +360,18 @@ const NewPost: React.FC = () => {
                   />
                 </label>
 
-              </>
+                <div className="mt-auto p-2 text-black text-center text-sm">
+                  {image.name}
+                </div>
+              </div>
             )}
           </div>
         </div>
 
         {/* Right side: Form section */}
-        <div className="w-full md:w-2/3 p-6">
+        <div className="w-full md:w-2/3 p-6 m-5 rounded-lg bg-white ">
           <form onSubmit={handleSubmit}>
             <div className="mb-4">
-
               <label
                 htmlFor="postType"
                 className="text-[#FF914D] block text-lg font-medium mb-2"
@@ -379,8 +379,8 @@ const NewPost: React.FC = () => {
                 เลือกประเภทโพสต์
                 <span className="text-red-500 ml-1">*</span>
               </label>
-              <div className="flex space-x-6">
-                <div>
+              <div className="flex space-x-8 ml-2">
+                <div className="flex items-center space-x-2">
                   <input
                     id="lost"
                     type="checkbox"
@@ -394,11 +394,11 @@ const NewPost: React.FC = () => {
                         setSelectedDate(today);
                       }
                     }}
-                    className="mr-2"
+                    className="scale-150"
                   />
                   <label htmlFor="lost">ตามหาแมวหาย</label>
                 </div>
-                <div>
+                <div className="flex items-center space-x-2">
                   <input
                     id="found"
                     type="checkbox"
@@ -407,11 +407,11 @@ const NewPost: React.FC = () => {
                     onChange={() =>
                       setPostType(postType === "found" ? "" : "found")
                     }
-                    className="mr-2"
+                    className="scale-150"
                   />
                   <label htmlFor="found">ตามหาเจ้าของแมว</label>
                 </div>
-                <div>
+                <div className="flex items-center space-x-2">
                   <input
                     id="adoption"
                     type="checkbox"
@@ -420,7 +420,7 @@ const NewPost: React.FC = () => {
                     onChange={() =>
                       setPostType(postType === "adoption" ? "" : "adoption")
                     }
-                    className="mr-2"
+                    className="scale-150"
                   />
                   <label htmlFor="adoption">ตามหาบ้านให้แมว</label>
                 </div>
@@ -436,7 +436,6 @@ const NewPost: React.FC = () => {
                 >
                   ชื่อแมว
                   <span className="text-red-500 ml-1">*</span>
-
                 </label>
                 <input
                   id="name"
@@ -444,10 +443,9 @@ const NewPost: React.FC = () => {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="ชื่อแมว..."
-                  className="w-fit px-4 py-2 border border-gray-300 rounded-lg"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg"
                   required
                 />
-
               </div>
             )}
 
@@ -459,21 +457,20 @@ const NewPost: React.FC = () => {
               >
                 เพศ
                 <span className="text-red-500 ml-1">*</span>
-
               </label>
-              <div className="flex space-x-6">
-                <div>
+              <div className="flex space-x-8 ml-2">
+                <div className="flex items-center space-x-2">
                   <input
                     id="male"
                     type="checkbox"
                     value="male"
                     checked={gender === "male"}
                     onChange={() => setGender(gender === "male" ? "" : "male")}
-                    className="mr-2"
+                    className="scale-150"
                   />
                   <label htmlFor="male">เพศผู้</label>
                 </div>
-                <div>
+                <div className="flex items-center space-x-2">
                   <input
                     id="female"
                     type="checkbox"
@@ -482,7 +479,7 @@ const NewPost: React.FC = () => {
                     onChange={() =>
                       setGender(gender === "female" ? "" : "female")
                     }
-                    className="mr-2"
+                    className="scale-150"
                   />
                   <label htmlFor="female">เพศเมีย</label>
                 </div>
@@ -499,7 +496,6 @@ const NewPost: React.FC = () => {
                 >
                   สี
                   <span className="text-red-500 ml-1">*</span>
-
                 </label>
                 <input
                   id="color"
@@ -520,7 +516,6 @@ const NewPost: React.FC = () => {
                 >
                   สายพันธุ์
                   <span className="text-red-500 ml-1">*</span>
-
                 </label>
                 <input
                   id="breed"
@@ -535,7 +530,10 @@ const NewPost: React.FC = () => {
             </div>
             {/* Cat Info Input */}
             <div className="mb-6">
-              <label htmlFor="catInfo" className="block text-lg font-medium mb-2 text-[#FF914D]">
+              <label
+                htmlFor="catInfo"
+                className="block text-lg font-medium mb-2 text-[#FF914D]"
+              >
                 <div className="flex items-center space-x-2">
                   <span>จุดสังเกต</span>
                   <div className="relative group">
@@ -543,7 +541,8 @@ const NewPost: React.FC = () => {
                       ?
                     </div>
                     <div className="absolute bottom-full mb-1 left-1/2 -translate-x-1/2 w-72 text-sm bg-black text-white p-2 rounded-md opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-10 text-center">
-                      ระบุลักษณะเฉพาะของแมว เช่น ลาย จุด หรือตำหนิบนตัวแมว<br />
+                      ระบุลักษณะเฉพาะของแมว เช่น ลาย จุด หรือตำหนิบนตัวแมว
+                      <br />
                       ช่วยให้ผู้พบเห็นจดจำได้ง่ายขึ้น
                     </div>
                   </div>
@@ -564,7 +563,6 @@ const NewPost: React.FC = () => {
               <label className="text-[#FF914D] block text-lg font-medium mb-2">
                 ตำแหน่ง
                 <span className="text-red-500 ml-1">*</span>
-
               </label>
               <GoogleMap
                 onLoad={() => setMapLoaded(true)}
@@ -593,7 +591,6 @@ const NewPost: React.FC = () => {
                 <label className="text-[#FF914D] block text-lg font-medium mb-2">
                   วันที่หาย
                   <span className="text-red-500 ml-1">*</span>
-
                 </label>
                 <input
                   type="date"
@@ -607,7 +604,10 @@ const NewPost: React.FC = () => {
 
             {/* extra content Textarea */}
             <div className="mb-6">
-              <label htmlFor="extraDetails" className="block text-lg font-medium mb-2 text-[#FF914D]">
+              <label
+                htmlFor="extraDetails"
+                className="block text-lg font-medium mb-2 text-[#FF914D]"
+              >
                 <div className="flex items-center space-x-2">
                   <span>รายละเอียดเพิ่มเติม</span>
                   <div className="relative group">
@@ -615,7 +615,8 @@ const NewPost: React.FC = () => {
                       ?
                     </div>
                     <div className="absolute top-full mt-1 left-1/2 -translate-x-1/2 w-72 text-sm bg-black text-white p-3 rounded-md opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-10">
-                      ระบุรายละเอียดเพิ่มเติม เช่น สถานที่หาย/พบ ช่วงเวลาที่หาย หรือพฤติกรรมพิเศษของแมว
+                      ระบุรายละเอียดเพิ่มเติม เช่น สถานที่หาย/พบ ช่วงเวลาที่หาย
+                      พฤติกรรมพิเศษของแมว ข้อมูลการติดต่อ
                     </div>
                   </div>
                 </div>
@@ -625,21 +626,25 @@ const NewPost: React.FC = () => {
                 id="extraDetails"
                 value={other_information}
                 onChange={(e) => setOther_information(e.target.value)}
-                placeholder="รายละเอียดเพิ่มเติม..."
+                placeholder="รายละเอียดอื่นๆ เพิ่มเติม..."
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg"
               />
             </div>
 
             {/* Email Section */}
             <div className="mb-4 flex items-center space-x-4">
-              <label htmlFor="email" className="text-[#FF914D] text-lg font-medium flex items-center">
+              <label
+                htmlFor="email"
+                className="text-[#FF914D] text-lg font-medium flex items-center"
+              >
                 รับแจ้งเตือนผ่าน Email
                 <div className="relative group ml-2">
                   <div className="w-5 h-5 bg-gray-300 text-white text-sm rounded-full flex items-center justify-center cursor-pointer">
                     ?
                   </div>
                   <div className="absolute top-full mt-1 left-1/2 -translate-x-1/2 w-72 text-sm bg-black text-white p-3 rounded-md opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-10">
-                    หากเลือก "รับ" ระบบจะส่งอีเมลแจ้งเตือนเมื่อมีโพสต์แมวที่มีลักษณะคล้ายกันปรากฏขึ้น
+                    หากเลือก "รับ"
+                    ระบบจะส่งอีเมลแจ้งเตือนเมื่อมีโพสต์แมวที่มีลักษณะคล้ายกันปรากฏขึ้น
                     <br />
                     <span className="block mt-2 text-gray-300 text-xs">
                       * อีเมลอาจเข้าไปอยู่ในกล่อง Spam หรือ Junk Mail
@@ -660,9 +665,8 @@ const NewPost: React.FC = () => {
               </div>
             </div>
 
-
             {/* Submit Button */}
-            <div className="mb-6 flex items-end space-x-4">
+            <div className="mb-6 flex space-x-4 justify-center">
               <button
                 type="submit"
                 className="px-6 py-2 bg-[#FF914D] text-white font-bold rounded-lg hover:bg-[#FFE9DB] transition "

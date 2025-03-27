@@ -44,8 +44,9 @@ const Card = ({ postType }: CardProps) => {
       const userId = localStorage.getItem("user_id");
 
       if (["adoption", "lost", "found"].includes(postType)) {
-        url = `${import.meta.env.VITE_BACKEND_URL
-          }/api/v1/posts/?post_type=${postType}`;
+        url = `${
+          import.meta.env.VITE_BACKEND_URL
+        }/api/v1/posts/?post_type=${postType}`;
       } else if (userId) {
         url = `${import.meta.env.VITE_BACKEND_URL}/api/v1/posts/user/${userId}`;
       } else {
@@ -119,34 +120,36 @@ const Card = ({ postType }: CardProps) => {
           </p>
         </div>
       )}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2 gap-x-20 gap-y-10">
+      <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-1 lg:grid-cols-2 gap-x-20 gap-y-10">
         {posts.map((post, index) => (
           <div
-            // key={index}
-            // onClick={() => navigate(`/cat-detail/${post.post_id}`)}
-            className="rounded-lg bg-[#FFE9DB] shadow-lg flex w-[35rem] min-h-[35-rem] h-auto"
+            key={index}
+            className="rounded-lg bg-[#FFE9DB] shadow-lg flex flex-col sm:flex-row w-full sm:w-[35rem] min-w-[20rem] h-auto"
           >
-            <div className="flex items-center justify-center m-4">
+            {/* Image */}
+            <div className="flex items-center justify-center p-4">
               {post.cat_image && post.cat_image.image_path ? (
                 <img
-                  className="w-56 h-56 object-cover"
+                  className="w-48 h-56 object-cover rounded-md"
                   src={post.cat_image.image_path}
+                  alt="cat"
                 />
               ) : (
-                <div className="w-56 h-56 bg-gray-200 flex items-center justify-center">
+                <div className="w-48 h-56 bg-gray-200 flex items-center justify-center rounded-md">
                   <p>No Image</p>
                 </div>
               )}
             </div>
-            <div className="p-4 w-2/3">
-              <h2 className="text-[#FF914D] text-2xl font-semibold mb-2 text-center">
-                {post.post_type === "lost" && post.cat_name && (
-                  <h1 className="text-[#FF914D] text-3xl font-bold text-center mb-4">
-                    {post.cat_name}
-                  </h1>
-                )}
-              </h2>
-              <ul className="text-sm text-gray-800 space-y-1">
+
+            {/* Info */}
+            <div className="p-4 flex flex-col justify-center flex-1">
+              {post.post_type === "lost" && post.cat_name && (
+                <h1 className="text-[#FF914D] text-3xl font-bold text-center mb-4">
+                  {post.cat_name}
+                </h1>
+              )}
+
+              <ul className="text-gray-800 space-y-1 text-sm">
                 <li>
                   <strong className="text-[#FF914D]">เพศ:</strong>{" "}
                   {post.gender === "female" ? "เพศเมีย" : "เพศผู้"}
@@ -155,39 +158,33 @@ const Card = ({ postType }: CardProps) => {
                   <strong className="text-[#FF914D]">สี:</strong> {post.color}
                 </li>
                 <li>
-                  <strong className="text-[#FF914D]">พันธุ์:</strong>{" "}
+                  <strong className="text-[#FF914D]">สายพันธุ์:</strong>{" "}
                   {post.breed}
                 </li>
-                <li>
-                  
-                </li>
+                {postType === "lost" && post.lost_date && (
+                  <p className="text-sm text-gray-800 mt-2">
+                    <strong className="text-[#FF914D]">วันที่หาย:</strong>{" "}
+                    {new Date(post.lost_date).toLocaleDateString("th-TH", {
+                      year: "numeric",
+                      month: "2-digit",
+                      day: "2-digit",
+                    })}
+                  </p>
+                )}
               </ul>
-              {postType === "lost" && post.lost_date && (
-                <p className="text-sm text-gray-800 mt-2">
-                  <strong className="text-[#FF914D]">วันที่หาย:</strong>{" "}
-                  {new Date(post.lost_date).toLocaleDateString("th-TH", {
-                    year: "numeric",
-                    month: "2-digit",
-                    day: "2-digit",
-                  })}
-                </p>
-              )}
-               
-            
-                <div className="w-full flex justify-center mt-20">
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation(); // prevent triggering card click
-                      navigate(`/cat-detail/${post.post_id}`);
-                    }}
-                    className="px-4 py-2 bg-[#FF914D] text-white font-semibold rounded-lg hover:bg-orange-500 transition whitespace-nowrap"
-                  >
-                    เพิ่มเติม
-                  </button>
-                </div>
+
+              <div className="w-full flex justify-center mt-6">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate(`/cat-detail/${post.post_id}`);
+                  }}
+                  className="px-4 py-2 bg-[#FF914D] text-white font-semibold rounded-lg hover:bg-orange-500 transition whitespace-nowrap"
+                >
+                  ดูเพิ่มเติม
+                </button>
+              </div>
             </div>
-
-
           </div>
         ))}
       </div>

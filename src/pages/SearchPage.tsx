@@ -6,6 +6,7 @@ import { FaSearch } from "react-icons/fa";
 import { IoIosCloseCircleOutline } from "react-icons/io";
 import { MutatingDots } from "react-loader-spinner";
 import heic2any from "heic2any";
+import { MdOutlineFileUpload } from "react-icons/md";
 
 const SearchPage = () => {
   const navigate = useNavigate();
@@ -194,27 +195,14 @@ const SearchPage = () => {
                 </div>
               ) : !image ? (
                 <div className="flex flex-col items-center justify-center text-center space-y-2">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-10 w-10 text-black mb-2"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M3 16l4 4m0 0l4-4m-4 4V4m12 12l-4 4m0 0l-4-4m4 4V4"
-                    />
-                  </svg>
-                  <p className="text-black">Drag and Drop here</p>
-                  <p className="text-black">or</p>
+                  <MdOutlineFileUpload className="text-5xl" />
+                  <p className="text-black font-med">ลากและวางรูปภาพที่นี่</p>
+                  <p className="text-black">หรือ</p>
                   <label
                     htmlFor="fileUpload"
                     className="px-4 py-2 bg-[#FFE9DB] text-black rounded-lg cursor-pointer hover:bg-[#FFA864] transition"
                   >
-                    Select File
+                    เลือกรูปภาพ
                   </label>
                   <input
                     id="fileUpload"
@@ -253,7 +241,7 @@ const SearchPage = () => {
                     />
                   </label>
 
-                  <div className="mt-auto p-2 text-black text-center">
+                  <div className="mt-auto p-2 text-black text-center text-sm">
                     {image.name}
                   </div>
                 </div>
