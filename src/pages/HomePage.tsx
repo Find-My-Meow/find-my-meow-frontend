@@ -153,7 +153,7 @@ const HomePage = () => {
 
       {/* 🗺️ Map Section Title - add spacing above */}
       <div className="mt-10 text-center text-xl font-semibold text-gray-700 mb-4">
-        🗺️ สำรวจตำแหน่งในพื้นที่ของคุณ
+        🗺️ สำรวจตำแหน่งแมวในพื้นที่ของคุณ
         <br />
         แมวหาย / แมวหาเจ้าของ / แมวหาบ้าน
       </div>
