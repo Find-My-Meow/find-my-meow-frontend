@@ -1,20 +1,23 @@
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import DefaultButton from "../components/DefaultButton";
 import { useEffect, useRef, useState } from "react";
 import { ThreeDots } from "react-loader-spinner";
 import { MdErrorOutline } from "react-icons/md";
 import { TbCat } from "react-icons/tb";
 import Swal from "sweetalert2";
+import GoToTopButton from "../components/GoToTopButton";
+import { useSearch } from "../context/search-context";
 
 const Result = () => {
   const navigate = useNavigate();
-  const routerLocation = useLocation();
-  const { image, location, radius } = routerLocation.state || {};
+  const { searchState } = useSearch();
+  const { image, location, radius } = searchState || {};
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [noCatDetected, setNoCatDetected] = useState(false);
   const [selectedType, setSelectedType] = useState<string>("all");
+  const [placeName, setPlaceName] = useState<string | null>(null);
   const searchCalled = useRef(false);
 
   const filteredResults =
@@ -102,6 +105,28 @@ const Result = () => {
     };
 
     searchCats();
+
+    if (location) {
+      const fetchPlaceName = async () => {
+        try {
+          const response = await fetch(
+            `https://maps.googleapis.com/maps/api/geocode/json?latlng=${
+              location.lat
+            },${location.lng}&key=${import.meta.env.VITE_GOOGLE_MAPS_API_KEY}`
+          );
+          const data = await response.json();
+          if (data.status === "OK" && data.results.length > 0) {
+            setPlaceName(data.results[0].formatted_address);
+          } else {
+            setPlaceName(null);
+          }
+        } catch (error) {
+          console.error("Error fetching place name:", error);
+        }
+      };
+
+      fetchPlaceName();
+    }
   }, [image, location]);
 
   return (
@@ -141,15 +166,49 @@ const Result = () => {
             />
           </div>
 
-          <div className="flex gap-2 justify-center mt-6">
+          {/* Show query data */}
+          {!error && (
+            <div className="rounded-2xl border border-[#FF914D] shadow-md bg-white p-4 max-w-full mx-auto mt-3">
+              {image && (
+                <div className="flex flex-col items-center">
+                  <p className="text-base font-semibold text-[#FF914D] mb-1">
+                    รูปที่ใช้ค้นหา
+                  </p>
+                  <div className="w-fit h-48 bg-gray-50 rounded-xl overflow-hidden border border-[#FF914D]">
+                    <img
+                      src={URL.createObjectURL(image)}
+                      alt="Query"
+                      className="w-full h-full object-contain"
+                    />
+                  </div>
+                </div>
+              )}
+              {placeName && (
+                <div className="mt-4 text-sm text-gray-700 text-center">
+                  <p className="mb-1">
+                    <span className="font-semibold text-[#FF914D]">
+                      สถานที่ค้นหา:
+                    </span>{" "}
+                    {placeName}
+                  </p>
+                  <p>
+                    <span className="font-semibold text-[#FF914D]">รัศมี:</span>{" "}
+                    {radius || 1} กม.
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+
+          <div className="flex gap-2 justify-center mt-8">
             {["all", "found", "adoption", "lost"].map((type) => (
               <button
                 key={type}
                 onClick={() => setSelectedType(type)}
-                className={`px-4 py-2 rounded-full font-semibold border ${
+                className={`px-4 py-2 rounded-full font-semibold border transition-all duration-300 ease-in-out ${
                   selectedType === type
                     ? "bg-[#FF914D] text-white border-[#FF914D]"
-                    : "bg-white text-[#FF914D] border-[#FF914D]"
+                    : "bg-white text-[#FF914D] border-[#FF914D] hover:bg-[#FFF1E6]"
                 }`}
               >
                 {type === "all"
@@ -183,7 +242,7 @@ const Result = () => {
               <p className="text-md text-gray-600 mt-2">{error}</p>
             </div>
           ) : filteredResults.length > 0 ? ( // results
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-x-20 gap-y-10 mt-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-x-20 gap-y-10 mt-6">
               {filteredResults.map((post: any) => (
                 <div
                   key={post.post_id}
@@ -267,6 +326,7 @@ const Result = () => {
           )}
         </div>
       )}
+      <GoToTopButton />
     </div>
   );
 };
