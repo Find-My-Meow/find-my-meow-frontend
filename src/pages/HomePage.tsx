@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import DefaultButton from "../components/DefaultButton";
 import { GoogleMap, OverlayView } from "@react-google-maps/api";
 import { useEffect, useRef, useState } from "react";
+
 interface Post {
   user_id: string;
   post_id: string;
@@ -27,11 +28,15 @@ interface Post {
 }
 const HomePage = () => {
   const navigate = useNavigate();
-  const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [location, setLocation] = useState<{ lat: number; lng: number } | null>(
+    null
+  );
   const [radius, setRadius] = useState<number>(1); // in km
   const [mapLoaded, setMapLoaded] = useState(false);
   const defaultCenter = { lat: 13.7563, lng: 100.5018 }; // Bangkok
-  const [mapCenter, setMapCenter] = useState<{ lat: number; lng: number }>(defaultCenter);
+  const [mapCenter, setMapCenter] = useState<{ lat: number; lng: number }>(
+    defaultCenter
+  );
   const circleRef = useRef<google.maps.Circle | null>(null);
   const mapRef = useRef<google.maps.Map | null>(null);
   const [posts, setPosts] = useState<Post[]>([]);
@@ -42,9 +47,17 @@ const HomePage = () => {
     const fetchAllPosts = async () => {
       try {
         const [lostRes, foundRes, adoptionRes] = await Promise.all([
-          fetch(`${import.meta.env.VITE_BACKEND_URL}/api/v1/posts/?post_type=lost`),
-          fetch(`${import.meta.env.VITE_BACKEND_URL}/api/v1/posts/?post_type=found`),
-          fetch(`${import.meta.env.VITE_BACKEND_URL}/api/v1/posts/?post_type=adoption`),
+          fetch(
+            `${import.meta.env.VITE_BACKEND_URL}/api/v1/posts/?post_type=lost`
+          ),
+          fetch(
+            `${import.meta.env.VITE_BACKEND_URL}/api/v1/posts/?post_type=found`
+          ),
+          fetch(
+            `${
+              import.meta.env.VITE_BACKEND_URL
+            }/api/v1/posts/?post_type=adoption`
+          ),
         ]);
 
         const [lost, found, adoption] = await Promise.all([
@@ -62,7 +75,7 @@ const HomePage = () => {
     fetchAllPosts();
   }, []);
 
-  console.log(posts)
+  // console.log(posts);
 
   const updateCircle = (loc: { lat: number; lng: number }) => {
     if (!mapRef.current) return;
@@ -117,7 +130,7 @@ const HomePage = () => {
 
   return (
     <div className="w-full h-fit px-4 py-10">
-      <div className="flex flex-col-reverse lg:flex-row items-center gap-10 lg:gap-20 max-w-6xl mx-auto">
+      <div className="h-screen flex flex-col-reverse lg:flex-row items-center gap-10 lg:gap-20 max-w-6xl mx-auto -mt-32">
         {/* Left Section: Text and Button */}
         <div className="text-center lg:text-left">
           <div className="font-paytone text-4xl sm:text-5xl md:text-6xl lg:text-7xl py-2 leading-tight whitespace-nowrap">
@@ -153,13 +166,11 @@ const HomePage = () => {
 
       {/* 🗺️ Map Section Title - add spacing above */}
       <div className="mt-10 text-center text-xl font-semibold text-gray-700 mb-4">
-        🗺️ สำรวจตำแหน่งแมวในพื้นที่ของคุณ
-        <br />
-        แมวหาย / แมวหาเจ้าของ / แมวหาบ้าน
+        <h1 className="text-3xl">สำรวจตำแหน่งแมวในพื้นที่ของคุณ</h1>
+        <h2>แมวหาย / แมวหาเจ้าของ / แมวหาบ้าน</h2>
       </div>
 
-
-      <div className="mt-12 w-full max-w-6xl mx-auto h-[400px]">
+      <div className="mt-10 mb-10 w-full max-w-6xl mx-auto h-[600px]">
         <GoogleMap
           onLoad={handleMapLoad}
           mapContainerStyle={{ width: "100%", height: "100%" }}
@@ -182,8 +193,10 @@ const HomePage = () => {
           {posts.map((post) => {
             let borderColor = "border-gray-400";
             if (post.post_type === "lost") borderColor = "border-red-500";
-            else if (post.post_type === "found") borderColor = "border-blue-500";
-            else if (post.post_type === "adoption") borderColor = "border-green-500";
+            else if (post.post_type === "found")
+              borderColor = "border-blue-500";
+            else if (post.post_type === "adoption")
+              borderColor = "border-green-500";
 
             return (
               <OverlayView
@@ -209,11 +222,8 @@ const HomePage = () => {
             );
           })}
         </GoogleMap>
-
-
       </div>
     </div>
-
   );
 };
 
