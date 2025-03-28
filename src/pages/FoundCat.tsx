@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import Card from "../components/card";
 import DefaultButton from "../components/DefaultButton";
+import GoToTopButton from "../components/GoToTopButton";
 const FoundCat = () => {
   const navigate = useNavigate();
 
@@ -9,7 +10,7 @@ const FoundCat = () => {
     // Navigate to the /new-post route when the button is clicked
     navigate("/create-newpost");
   };
-  
+
   return (
     <div className="h-full">
       {/* Title at the top center */}
@@ -29,9 +30,10 @@ const FoundCat = () => {
       </div>
 
       {/* Grid layout */}
-      <div className="flex justify-center mt-10">
+      <div className="flex justify-center mt-10 mb-12">
         <Card postType={"found"} />
       </div>
+      <GoToTopButton />
     </div>
   );
 };
