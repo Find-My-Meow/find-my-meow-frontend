@@ -242,12 +242,12 @@ const Result = () => {
               <p className="text-md text-gray-600 mt-2">{error}</p>
             </div>
           ) : filteredResults.length > 0 ? ( // results
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-x-20 gap-y-10 mt-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6 mt-6 justify-items-center">
               {filteredResults.map((post: any) => (
                 <div
                   key={post.post_id}
                   onClick={() => navigate(`/cat-detail/${post.post_id}`)}
-                  className="cursor-pointer rounded-lg bg-[#FFE9DB] shadow-lg flex w-[35rem] h-auto"
+                  className="cursor-pointer rounded-lg bg-[#FFE9DB] shadow-lg flex w-[30rem] h-auto"
                 >
                   {/* Image */}
                   <div className="flex items-center justify-center m-4">
