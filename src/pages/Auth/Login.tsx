@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom"; // <-- add this
 
 const LoginPage = () => {
-  const [user, setUser] = useState<{ name: string; email: string } | null>(null);
+  const [, setUser] = useState<{ name: string; email: string } | null>(null);
   const navigate = useNavigate(); // <-- and this
 
   useEffect(() => {

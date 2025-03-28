@@ -1,5 +1,5 @@
 import { useLocation, useNavigate } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import DefaultButton from "./DefaultButton";
 import { FiMenu, FiX } from "react-icons/fi";
 import { FaUserCircle } from "react-icons/fa";
@@ -15,6 +15,8 @@ const Navbar = () => {
   const location = useLocation();
   const [user, setUser] = useState<User | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const userMenuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const loadUser = () => {
@@ -25,15 +27,29 @@ const Navbar = () => {
     };
 
     loadUser();
-    // Listen for login event
     window.addEventListener("userLogin", loadUser);
     return () => window.removeEventListener("userLogin", loadUser);
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (
+        userMenuRef.current &&
+        !userMenuRef.current.contains(e.target as Node)
+      ) {
+        setUserMenuOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   const handleLogout = () => {
     localStorage.removeItem("user");
     localStorage.removeItem("user_id");
     setUser(null);
+    setUserMenuOpen(false);
     navigate("/");
     setMenuOpen(false);
   };
@@ -62,58 +78,102 @@ const Navbar = () => {
 
         {/* Desktop Menu */}
         <nav className="hidden md:flex space-x-6">
-          <button onClick={() => navigate("/")} className="hover:text-gray-500">
+          <button
+            onClick={() => navigate("/")}
+            className={`hover:text-gray-500 ${
+              location.pathname === "/"
+                ? "border-b-2 border-[#FF914D] text-[#FF914D]"
+                : ""
+            }`}
+          >
             หน้าแรก
           </button>
           <button
             onClick={() => navigate("/lost-cat")}
-            className="hover:text-gray-500"
+            className={`hover:text-gray-500 ${
+              location.pathname === "/lost-cat"
+                ? "border-b-2 border-[#FF914D] text-[#FF914D]"
+                : ""
+            }`}
           >
             ประกาศแมวหาย
           </button>
           <button
             onClick={() => navigate("/found-cat")}
-            className="hover:text-gray-500"
+            className={`hover:text-gray-500 ${
+              location.pathname === "/found-cat"
+                ? "border-b-2 border-[#FF914D] text-[#FF914D]"
+                : ""
+            }`}
           >
             ประกาศหาเจ้าของ
           </button>
           <button
             onClick={() => navigate("/adopt-cat")}
-            className="hover:text-gray-500"
+            className={`hover:text-gray-500 ${
+              location.pathname === "/adopt-cat"
+                ? "border-b-2 border-[#FF914D] text-[#FF914D]"
+                : ""
+            }`}
           >
             ประกาศหาบ้านให้แมว
           </button>
           <button
             onClick={() => navigate("/search-cat")}
-            className="hover:text-gray-500"
+            className={`hover:text-gray-500 ${
+              location.pathname === "/search-cat"
+                ? "border-b-2 border-[#FF914D] text-[#FF914D]"
+                : ""
+            }`}
           >
             ค้นหาแมวหาย
           </button>
         </nav>
 
-        {/* User Section */}
+        {/* User Section (Desktop) */}
         <div className="hidden md:block font-semibold relative">
           {user ? (
-            <div className="relative group flex items-center space-x-2 cursor-pointer">
+            <div
+              ref={userMenuRef}
+              className="relative flex items-center space-x-2"
+            >
               <span className="mr-2 font-medium text-[#FF914D]">
                 {user.name}
               </span>
-              <FaUserCircle className="text-2xl text-[#FF914D] w-9 h-9" />
-              {/* Dropdown */}
-              <div className="absolute top-12 right-0 bg-white shadow-md border rounded-md py-2 px-3 opacity-0 group-hover:opacity-100 group-hover:translate-y-1 transform transition-all duration-200 z-20">
-                <button
-                  onClick={() => navigate("/user-profile")}
-                  className="block w-full text-left px-2 py-1 hover:bg-gray-100 text-lg"
-                >
-                  โปรไฟล์
-                </button>
-                <button
-                  onClick={handleLogout}
-                  className="block w-full text-left px-2 py-1 hover:bg-gray-100 text-lg text-red-500"
-                >
-                  ออกจากระบบ
-                </button>
-              </div>
+              <button
+                onClick={() => setUserMenuOpen((prev) => !prev)}
+                className="focus:outline-none"
+              >
+                {user.picture ? (
+                  <img
+                    src={user.picture}
+                    alt="Profile"
+                    className="w-9 h-9 min-w-9 min-h-9 rounded-full border-[2px] border-gray-500 object-cover"
+                  />
+                ) : (
+                  <FaUserCircle className="text-2xl text-[#FF914D] w-9 h-9" />
+                )}
+              </button>
+
+              {userMenuOpen && (
+                <div className="absolute top-12 right-0 bg-white shadow-md border rounded-md py-2 px-3 z-20">
+                  <button
+                    onClick={() => {
+                      navigate("/user-profile");
+                      setUserMenuOpen(false);
+                    }}
+                    className="block w-full text-left px-2 py-1 hover:bg-gray-100 text-lg"
+                  >
+                    โปรไฟล์
+                  </button>
+                  <button
+                    onClick={handleLogout}
+                    className="block w-full text-left px-2 py-1 hover:bg-gray-100 text-lg text-red-500"
+                  >
+                    ออกจากระบบ
+                  </button>
+                </div>
+              )}
             </div>
           ) : (
             <DefaultButton
@@ -124,7 +184,7 @@ const Navbar = () => {
           )}
         </div>
 
-        {/* Menu Button */}
+        {/* Menu Button (Mobile) */}
         <div className="md:hidden">
           <button onClick={toggleMenu} className="text-2xl">
             {menuOpen ? <FiX /> : <FiMenu />}
@@ -132,7 +192,7 @@ const Navbar = () => {
         </div>
       </div>
 
-      {/* Dropdown Menu */}
+      {/* Dropdown Menu (Mobile) */}
       {menuOpen && (
         <div className="md:hidden bg-white shadow-md border-t font-medium py-4">
           <button
