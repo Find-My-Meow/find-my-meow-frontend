@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import Card from "../components/card";
 import DefaultButton from "../components/DefaultButton";
+import GoToTopButton from "../components/GoToTopButton";
 const AdoptCat = () => {
   const navigate = useNavigate();
 
@@ -29,9 +30,10 @@ const AdoptCat = () => {
       </div>
 
       {/* Grid layout */}
-      <div className="flex justify-center mt-10">
+      <div className="flex justify-center mt-10 mb-12">
         <Card postType={"adoption"} />
       </div>
+      <GoToTopButton />
     </div>
   );
 };

@@ -3,10 +3,10 @@ import axios from "axios";
 import Swal from "sweetalert2";
 import heic2any from "heic2any";
 import { useNavigate } from "react-router-dom";
-import { GoogleMap, Marker } from "@react-google-maps/api";
 import { MutatingDots } from "react-loader-spinner";
 import { IoIosCloseCircleOutline } from "react-icons/io";
 import { MdOutlineFileUpload } from "react-icons/md";
+import SearchLocationMap from "../components/LocationMap";
 
 const NewPost: React.FC = () => {
   const [name, setName] = useState("");
@@ -169,7 +169,7 @@ const NewPost: React.FC = () => {
       console.error("Error creating post:", error);
       // Extract server error response
       const errorMessage =
-        error?.response?.data?.detail ||
+        (error as any)?.response?.data?.detail ||
         "ไม่สามารถสร้างโพสต์ได้ กรุณาลองใหม่อีกครั้ง";
 
       // Handle specific case for "no cat detected"
@@ -564,25 +564,11 @@ const NewPost: React.FC = () => {
                 ตำแหน่ง
                 <span className="text-red-500 ml-1">*</span>
               </label>
-              <GoogleMap
-                onLoad={() => setMapLoaded(true)}
-                mapContainerStyle={{ width: "100%", height: "400px" }}
-                center={location || defaultCenter}
-                zoom={15}
-                onClick={(e) =>
-                  setLocation({
-                    lat: e.latLng?.lat() ?? 0,
-                    lng: e.latLng?.lng() ?? 0,
-                  })
-                }
-                options={{
-                  disableDefaultUI: true,
-                  zoomControl: true,
-                  streetViewControl: false,
-                }}
-              >
-                {location && <Marker position={location} />}
-              </GoogleMap>
+              <SearchLocationMap
+                location={location}
+                setLocation={setLocation}
+                radius={0}
+              />
             </div>
 
             {/* Conditionally render the selected date if postType is 'lostcat' */}

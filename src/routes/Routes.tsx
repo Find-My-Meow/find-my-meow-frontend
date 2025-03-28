@@ -12,6 +12,7 @@ import CatDetail from "../pages/CatDetail";
 import CatDetailEdit from "../pages/CatDetailEdit";
 import UserProfile from "../pages/UserProfile";
 import { LoadScript } from "@react-google-maps/api";
+import NotFound from "../pages/NotFound";
 
 const PrivateRoute = ({ children }: { children: JSX.Element }) => {
   const user = localStorage.getItem("user_id");
@@ -39,6 +40,7 @@ const AppRoutes = () => {
       <LoadScript
         googleMapsApiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY}
         loadingElement={<div style={{ display: "none" }} />}
+        libraries={["places"]}
       >
         <Navbar />
         <div className={getContainerClass()}>
@@ -76,6 +78,7 @@ const AppRoutes = () => {
               }
             />
             <Route path="/user-profile" element={<UserProfile />} />
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </div>
       </LoadScript>

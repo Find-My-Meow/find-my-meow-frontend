@@ -1,12 +1,13 @@
 import { useNavigate } from "react-router-dom";
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import Swal from "sweetalert2";
-import { GoogleMap, Marker } from "@react-google-maps/api";
 import { FaSearch } from "react-icons/fa";
 import { IoIosCloseCircleOutline } from "react-icons/io";
 import { MutatingDots } from "react-loader-spinner";
 import heic2any from "heic2any";
 import { MdOutlineFileUpload } from "react-icons/md";
+import LocationMap from "../components/LocationMap";
+import { useSearch } from "../context/search-context";
 
 const SearchPage = () => {
   const navigate = useNavigate();
@@ -15,41 +16,8 @@ const SearchPage = () => {
     null
   );
   const [radius, setRadius] = useState<number>(1); // in km
-  const [mapLoaded, setMapLoaded] = useState(false);
-  const defaultCenter = { lat: 13.7563, lng: 100.5018 }; // Bangkok
-  const [mapCenter, setMapCenter] = useState<{ lat: number; lng: number }>(
-    defaultCenter
-  );
   const [isLoadingImage, setIsLoadingImage] = useState(false);
-
-  const circleRef = useRef<google.maps.Circle | null>(null);
-  const mapRef = useRef<google.maps.Map | null>(null);
-
-  const handleMapLoad = (map: google.maps.Map) => {
-    setMapLoaded(true);
-    mapRef.current = map;
-  };
-
-  const updateCircle = (loc: { lat: number; lng: number }) => {
-    if (!mapRef.current) return;
-
-    if (circleRef.current) {
-      circleRef.current.setMap(null);
-    }
-
-    const newCircle = new window.google.maps.Circle({
-      center: loc,
-      radius: radius * 1000, // km to meters
-      fillColor: "#FF914D",
-      fillOpacity: 0.15,
-      strokeColor: "#FF914D",
-      strokeOpacity: 0.5,
-      strokeWeight: 1,
-      map: mapRef.current,
-    });
-
-    circleRef.current = newCircle;
-  };
+  const { setSearchState } = useSearch();
 
   const handleClick = async () => {
     if (!image && !location) {
@@ -60,14 +28,9 @@ const SearchPage = () => {
       });
       return;
     }
-
-    navigate("/result", {
-      state: {
-        image,
-        location,
-        radius,
-      },
-    });
+    // Save data in global context
+    setSearchState({ image, location, radius });
+    navigate("/result");
   };
 
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -124,32 +87,6 @@ const SearchPage = () => {
     e.preventDefault();
     e.stopPropagation();
   };
-
-  useEffect(() => {
-    if (mapLoaded && navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const userLocation = {
-            lat: position.coords.latitude,
-            lng: position.coords.longitude,
-          };
-          setMapCenter(userLocation);
-          mapRef.current?.panTo(userLocation);
-        },
-        (error) => {
-          console.error("Geolocation error:", error);
-          setMapCenter(defaultCenter);
-          mapRef.current?.panTo(defaultCenter);
-        }
-      );
-    }
-  }, [mapLoaded]);
-
-  useEffect(() => {
-    if (location) {
-      updateCircle(location);
-    }
-  }, [radius]);
 
   return (
     <div className="h-full mb-20">
@@ -259,29 +196,11 @@ const SearchPage = () => {
                 <label className="text-[#FF914D] block text-lg font-medium mb-2">
                   เลือกตำแหน่งบนแผนที่
                 </label>
-                <div className="w-full h-[400px] rounded-xl overflow-hidden border border-gray-300 shadow-sm">
-                  <GoogleMap
-                    onLoad={handleMapLoad}
-                    mapContainerStyle={{ width: "100%", height: "100%" }}
-                    center={mapCenter}
-                    zoom={15}
-                    onClick={(e) => {
-                      const newLocation = {
-                        lat: e.latLng?.lat() ?? 0,
-                        lng: e.latLng?.lng() ?? 0,
-                      };
-                      setLocation(newLocation);
-                      updateCircle(newLocation);
-                    }}
-                    options={{
-                      disableDefaultUI: true,
-                      zoomControl: true,
-                      streetViewControl: false,
-                    }}
-                  >
-                    {location && <Marker position={location} />}
-                  </GoogleMap>
-                </div>
+                <LocationMap
+                  location={location}
+                  setLocation={setLocation}
+                  radius={radius}
+                />
                 {location && (
                   <p className="mt-2 text-sm text-gray-600">
                     พิกัด: {location.lat.toFixed(6)}, {location.lng.toFixed(6)}
