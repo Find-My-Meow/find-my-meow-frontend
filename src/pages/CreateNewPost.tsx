@@ -54,7 +54,6 @@ const NewPost: React.FC = () => {
     formData.append("other_information", other_information);
     formData.append("email_notification", emailPreference ? "true" : "false");
     formData.append("post_type", postType);
-    formData.append("status", "active");
 
     if (location) {
       formData.append(
