@@ -6,7 +6,7 @@ import heic2any from "heic2any";
 import { MutatingDots } from "react-loader-spinner";
 import { MdOutlineFileUpload } from "react-icons/md";
 import { IoIosCloseCircleOutline } from "react-icons/io";
-import SearchLocationMap from "../components/LocationMap";
+import LocationMap from "../components/LocationMap";
 
 interface Post {
   user_id: string;
@@ -654,7 +654,7 @@ const CatDetailEdit = () => {
                 ตำแหน่ง
                 <span className="text-red-500 ml-1">*</span>
               </label>
-              <SearchLocationMap
+              <LocationMap
                 location={location}
                 setLocation={setLocation}
                 radius={0}
