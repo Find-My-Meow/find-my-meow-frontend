@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
-import { GoogleMap, Marker } from "@react-google-maps/api";
 import Swal from "sweetalert2";
 import heic2any from "heic2any";
 import { MutatingDots } from "react-loader-spinner";
 import { MdOutlineFileUpload } from "react-icons/md";
 import { IoIosCloseCircleOutline } from "react-icons/io";
+import SearchLocationMap from "../components/LocationMap";
 
 interface Post {
   user_id: string;
@@ -51,13 +51,13 @@ const CatDetailEdit = () => {
   const [other_information, setOther_information] = useState("");
   const [catMarking, setCatMarking] = useState("");
   const [postType, setPostType] = useState("");
-  const [status, setStatus] = useState("");
+  const [status] = useState("");
   const [selectedDate, setSelectedDate] = useState<string | null>(null); // New state for selected date
   const [userMatch, setUserMatch] = useState<boolean>(false);
   const [location, setLocation] = useState<{ lat: number; lng: number } | null>(
     null
   );
-  const [mapLoaded, setMapLoaded] = useState(false);
+  const [, setMapLoaded] = useState(false);
   const [isLoadingImage, setIsLoadingImage] = useState(false);
   const navigate = useNavigate();
 
@@ -271,7 +271,7 @@ const CatDetailEdit = () => {
     } catch (error: unknown) {
       // Handle specific case for "no cat detected"
       const errorMessage =
-        error?.response?.data?.detail ||
+        (error as any)?.response?.data?.detail ||
         "ไม่สามารถอัปเดตโพสต์ได้ กรุณาลองใหม่อีกครั้ง";
       if (
         typeof errorMessage === "string" &&
@@ -654,27 +654,11 @@ const CatDetailEdit = () => {
                 ตำแหน่ง
                 <span className="text-red-500 ml-1">*</span>
               </label>
-              <GoogleMap
-                onLoad={() => setMapLoaded(true)}
-                mapContainerStyle={{ width: "100%", height: "400px" }}
-                center={
-                  location?.lat && location?.lng ? location : defaultCenter
-                }
-                zoom={15}
-                onClick={(e) =>
-                  setLocation({
-                    lat: e.latLng?.lat() ?? 0,
-                    lng: e.latLng?.lng() ?? 0,
-                  })
-                }
-                options={{
-                  disableDefaultUI: true,
-                  zoomControl: true,
-                  streetViewControl: false,
-                }}
-              >
-                {location && <Marker position={location} />}
-              </GoogleMap>
+              <SearchLocationMap
+                location={location}
+                setLocation={setLocation}
+                radius={0}
+              />
             </div>
 
             {/* Conditionally render the selected date if postType is 'lostcat' */}
@@ -756,6 +740,13 @@ const CatDetailEdit = () => {
 
             {/* Submit Button */}
             <div className="mb-6 flex space-x-4 justify-center">
+              <button
+                type="button"
+                onClick={() => navigate(`/cat-detail/${post_id}`)}
+                className="px-6 py-2 bg-red-500 text-white font-bold rounded-lg hover:bg-[#FF6A6A] transition"
+              >
+                ยกเลิก
+              </button>
               <button
                 type="submit"
                 className="px-6 py-2 bg-[#FF914D] text-white font-bold rounded-lg hover:bg-[#FFE9DB] transition "
