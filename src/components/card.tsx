@@ -124,7 +124,7 @@ const Card = ({ postType }: CardProps) => {
         {posts.map((post, index) => (
           <div
             key={index}
-            className="rounded-lg bg-[#FFE9DB] shadow-lg flex flex-col sm:flex-row w-full sm:w-[35rem] min-w-[20rem] h-auto"
+            className="rounded-lg bg-[#FFE9DB] shadow-lg flex flex-col sm:flex-row w-full sm:w-[32rem] min-w-[20rem] h-auto"
           >
             {/* Image */}
             <div className="flex items-center justify-center p-4">
