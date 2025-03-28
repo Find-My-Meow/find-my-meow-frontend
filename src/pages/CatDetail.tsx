@@ -1,9 +1,9 @@
-import { GoogleMap, Marker } from "@react-google-maps/api";
 import { useEffect, useState } from "react";
 import { MdArrowBackIos } from "react-icons/md";
 import { RevolvingDot } from "react-loader-spinner";
 import { useParams, useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
+import LocationMap from "../components/LocationMap";
 
 interface Post {
   user_id: string;
@@ -295,26 +295,16 @@ const CatDetail = () => {
                   <h2 className="text-lg font-bold text-[#FF914D] mb-2">
                     ตำแหน่งที่พบ
                   </h2>
-                  <div className="w-full h-60 rounded-lg overflow-hidden">
-                    <GoogleMap
-                      mapContainerStyle={{ width: "100%", height: "100%" }}
-                      center={{
+                  <div className="w-full h-full rounded-lg overflow-hidden">
+                    <LocationMap
+                      location={{
                         lat: Number(post.location.latitude),
                         lng: Number(post.location.longitude),
                       }}
-                      zoom={15}
-                      options={{
-                        disableDefaultUI: true,
-                        zoomControl: true,
-                      }}
-                    >
-                      <Marker
-                        position={{
-                          lat: Number(post.location.latitude),
-                          lng: Number(post.location.longitude),
-                        }}
-                      />
-                    </GoogleMap>
+                      setLocation={() => {}}
+                      radius={0}
+                      readOnly={true}
+                    />
                   </div>
                 </div>
               )}

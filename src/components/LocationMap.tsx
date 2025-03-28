@@ -8,11 +8,12 @@ interface Props {
   location: { lat: number; lng: number } | null;
   setLocation: (loc: { lat: number; lng: number }) => void;
   radius: number;
+  readOnly?: boolean;
 }
 
 const defaultCenter = { lat: 13.7563, lng: 100.5018 }; // Bangkok
 
-const SearchLocationMap = ({ location, setLocation, radius }: Props) => {
+const LocationMap = ({ location, setLocation, radius, readOnly }: Props) => {
   const [mapLoaded, setMapLoaded] = useState(false);
   const [initialReady, setInitialReady] = useState(false);
   const [mapCenter, setMapCenter] = useState(defaultCenter);
@@ -158,6 +159,7 @@ const SearchLocationMap = ({ location, setLocation, radius }: Props) => {
             className="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg shadow-sm text-sm"
             value={searchText}
             onChange={(e) => setSearchText(e.target.value)}
+            readOnly={readOnly}
             onKeyDown={(e) => {
               if (e.key === "Enter") {
                 e.preventDefault(); // Prevent Enter from submitting form
@@ -166,7 +168,7 @@ const SearchLocationMap = ({ location, setLocation, radius }: Props) => {
           />
         </Autocomplete>
 
-        {searchText && (
+        {!readOnly && searchText && (
           <button
             type="button"
             onClick={() => setSearchText("")}
@@ -184,6 +186,7 @@ const SearchLocationMap = ({ location, setLocation, radius }: Props) => {
         center={mapCenter}
         zoom={15}
         onClick={(e) => {
+          if (readOnly) return;
           const clicked = {
             lat: e.latLng?.lat() ?? 0,
             lng: e.latLng?.lng() ?? 0,
@@ -214,4 +217,4 @@ const SearchLocationMap = ({ location, setLocation, radius }: Props) => {
   );
 };
 
-export default SearchLocationMap;
+export default LocationMap;

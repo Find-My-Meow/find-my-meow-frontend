@@ -19,7 +19,7 @@ const UserProfile = () => {
   }
 
   return (
-    <div className="h-full">
+    <div className="h-full mb-20">
       {/* Title at the top center */}
       <div className="flex justify-center items-start">
         <div className="text-center">

@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { MutatingDots } from "react-loader-spinner";
 import { IoIosCloseCircleOutline } from "react-icons/io";
 import { MdOutlineFileUpload } from "react-icons/md";
-import SearchLocationMap from "../components/LocationMap";
+import LocationMap from "../components/LocationMap";
 
 const NewPost: React.FC = () => {
   const [name, setName] = useState("");
@@ -81,7 +81,7 @@ const NewPost: React.FC = () => {
       return;
     }
 
-    // 🟡 Check image quality before adding to formData
+    // Check image quality before adding to formData
     const qualityCheck = new FormData();
     qualityCheck.append("file", image);
 
@@ -155,15 +155,7 @@ const NewPost: React.FC = () => {
         showConfirmButton: false,
         timer: 2000,
       }).then(() => {
-        if (postType === "lost") {
-          navigate("/lost-cat");
-        } else if (postType === "found") {
-          navigate("/found-cat");
-        } else if (postType === "adoption") {
-          navigate("/adopt-cat");
-        } else {
-          navigate("/");
-        }
+          navigate(`/cat-detail/${response.data.post_id}`);
       });
     } catch (error) {
       console.error("Error creating post:", error);
@@ -564,7 +556,7 @@ const NewPost: React.FC = () => {
                 ตำแหน่ง
                 <span className="text-red-500 ml-1">*</span>
               </label>
-              <SearchLocationMap
+              <LocationMap
                 location={location}
                 setLocation={setLocation}
                 radius={0}
