@@ -1,4 +1,4 @@
-describe("Find and Edit Post via Lost Cat List", () => {
+describe("Find and Edit Post", () => {
   let postId: string | null = null;
 
   before(() => {
