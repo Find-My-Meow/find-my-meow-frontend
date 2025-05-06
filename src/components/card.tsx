@@ -44,9 +44,8 @@ const Card = ({ postType }: CardProps) => {
       const userId = localStorage.getItem("user_id");
 
       if (["adoption", "lost", "found"].includes(postType)) {
-        url = `${
-          import.meta.env.VITE_BACKEND_URL
-        }/api/v1/posts/?post_type=${postType}`;
+        url = `${import.meta.env.VITE_BACKEND_URL
+          }/api/v1/posts/?post_type=${postType}`;
       } else if (userId) {
         url = `${import.meta.env.VITE_BACKEND_URL}/api/v1/posts/user/${userId}`;
       } else {
@@ -120,74 +119,73 @@ const Card = ({ postType }: CardProps) => {
           </p>
         </div>
       )}
-      <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-20 gap-y-10">
-        {posts.map((post, index) => (
-          <div
-            key={index}
-            className="rounded-lg bg-[#FFE9DB] shadow-lg flex flex-col sm:flex-row w-full sm:w-[32rem] min-w-[20rem] h-auto"
-          >
-            {/* Image */}
-            <div className="flex items-center justify-center p-4">
-              {post.cat_image && post.cat_image.image_path ? (
-                <img
-                  className="w-48 h-56 object-cover rounded-md"
-                  src={post.cat_image.image_path}
-                  alt="cat"
-                />
-              ) : (
-                <div className="w-48 h-56 bg-gray-200 flex items-center justify-center rounded-md">
-                  <p>No Image</p>
-                </div>
-              )}
-            </div>
-
-            {/* Info */}
-            <div className="p-4 flex flex-col justify-center flex-1">
-              {post.post_type === "lost" && post.cat_name && (
-                <h1 className="text-[#FF914D] text-3xl font-bold text-center mb-4">
-                  {post.cat_name}
-                </h1>
-              )}
-
-              <ul className="text-gray-800 space-y-1 text-sm">
-                <li>
-                  <strong className="text-[#FF914D]">เพศ:</strong>{" "}
-                  {post.gender === "female" ? "เพศเมีย" : "เพศผู้"}
-                </li>
-                <li>
-                  <strong className="text-[#FF914D]">สี:</strong> {post.color}
-                </li>
-                <li>
-                  <strong className="text-[#FF914D]">สายพันธุ์:</strong>{" "}
-                  {post.breed}
-                </li>
-                {postType === "lost" && post.lost_date && (
-                  <p className="text-sm text-gray-800 mt-2">
-                    <strong className="text-[#FF914D]">วันที่หาย:</strong>{" "}
-                    {new Date(post.lost_date).toLocaleDateString("th-TH", {
-                      year: "numeric",
-                      month: "2-digit",
-                      day: "2-digit",
-                    })}
-                  </p>
+      <div className="px-4 md:px-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+          {posts.map((post, index) => (
+            <div
+              key={index}
+              className="bg-[#FFE9DB] shadow-lg rounded-lg flex flex-col sm:flex-row w-full"
+            >
+              {/* Image */}
+              <div className="flex items-center justify-center p-4">
+                {post.cat_image?.image_path ? (
+                  <img
+                    src={post.cat_image.image_path}
+                    alt="cat"
+                    className="w-40 h-48 object-cover rounded-md"
+                  />
+                ) : (
+                  <div className="w-40 h-48 bg-gray-200 flex items-center justify-center rounded-md">
+                    <p>No Image</p>
+                  </div>
                 )}
-              </ul>
+              </div>
 
-              <div className="w-full flex justify-center mt-6">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    navigate(`/cat-detail/${post.post_id}`);
-                  }}
-                  className="px-4 py-2 bg-[#FF914D] text-white font-semibold rounded-lg hover:bg-orange-500 transition whitespace-nowrap"
-                >
-                  ดูเพิ่มเติม
-                </button>
+              {/* Info */}
+              <div className="p-4 flex flex-col justify-center flex-1">
+                {post.post_type === "lost" && post.cat_name && (
+                  <h1 className="text-[#FF914D] text-2xl font-bold mb-2 text-center sm:text-left">
+                    {post.cat_name}
+                  </h1>
+                )}
+                <ul className="text-gray-800 space-y-1 text-sm">
+                  <li>
+                    <strong className="text-[#FF914D]">เพศ:</strong>{" "}
+                    {post.gender === "female" ? "เพศเมีย" : "เพศผู้"}
+                  </li>
+                  <li>
+                    <strong className="text-[#FF914D]">สี:</strong> {post.color}
+                  </li>
+                  <li>
+                    <strong className="text-[#FF914D]">สายพันธุ์:</strong>{" "}
+                    {post.breed || "ไม่รู้"}
+                  </li>
+                  {postType === "lost" && post.lost_date && (
+                    <li>
+                      <strong className="text-[#FF914D]">วันที่หาย:</strong>{" "}
+                      {new Date(post.lost_date).toLocaleDateString("th-TH", {
+                        year: "numeric",
+                        month: "2-digit",
+                        day: "2-digit",
+                      })}
+                    </li>
+                  )}
+                </ul>
+
+                <div className="w-full flex justify-center sm:justify-start mt-4">
+                  <button
+                    onClick={() => navigate(`/cat-detail/${post.post_id}`)}
+                    className="px-4 py-2 bg-[#FF914D] text-white font-semibold rounded-lg hover:bg-orange-500 transition"
+                  >
+                    ดูเพิ่มเติม
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
+
     </div>
   );
 };

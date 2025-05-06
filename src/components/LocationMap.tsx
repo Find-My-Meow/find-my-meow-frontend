@@ -15,7 +15,7 @@ const defaultCenter = { lat: 13.7563, lng: 100.5018 }; // Bangkok
 
 const LocationMap = ({ location, setLocation, radius, readOnly }: Props) => {
   const [mapLoaded, setMapLoaded] = useState(false);
-  const [initialReady, setInitialReady] = useState(false);
+  const [markerReady, setMarkerReady] = useState(false);
   const [mapCenter, setMapCenter] = useState(defaultCenter);
   const mapRef = useRef<google.maps.Map | null>(null);
   const circleRef = useRef<google.maps.Circle | null>(null);
@@ -24,8 +24,8 @@ const LocationMap = ({ location, setLocation, radius, readOnly }: Props) => {
   const [searchText, setSearchText] = useState("");
 
   const handleMapLoad = (map: google.maps.Map) => {
-    setMapLoaded(true);
     mapRef.current = map;
+    setMapLoaded(true);
   };
 
   const updateCircle = (loc: { lat: number; lng: number }) => {
@@ -62,6 +62,7 @@ const LocationMap = ({ location, setLocation, radius, readOnly }: Props) => {
         mapRef.current?.panTo(newLoc);
         updateCircle(newLoc);
         setSearchText(place.formatted_address || place.name || "");
+        setMarkerReady(true);
       }
     }
   };
@@ -78,6 +79,7 @@ const LocationMap = ({ location, setLocation, radius, readOnly }: Props) => {
           setLocation(userLoc);
           mapRef.current?.panTo(userLoc);
           updateCircle(userLoc);
+          setMarkerReady(true);
         },
         (error) => {
           console.error("Geolocation error:", error);
@@ -91,18 +93,19 @@ const LocationMap = ({ location, setLocation, radius, readOnly }: Props) => {
     }
   };
 
+  // Initialize from provided location (e.g. editing/viewing a post)
   useEffect(() => {
-    if (location && mapRef.current && !initialReady) {
-      console.log("Initial location set:", location);
+    if (location && mapRef.current && !markerReady) {
       setMapCenter(location);
       mapRef.current.panTo(location);
       updateCircle(location);
-      setInitialReady(true); // mark as ready
+      setMarkerReady(true);
     }
-  }, [location, initialReady]);
+  }, [location, mapLoaded, markerReady]);
 
+  // Fallback to current location only if no initial location is provided
   useEffect(() => {
-    if (mapLoaded && navigator.geolocation) {
+    if (!location && mapLoaded && navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
           const userLoc = {
@@ -117,7 +120,7 @@ const LocationMap = ({ location, setLocation, radius, readOnly }: Props) => {
         }
       );
     }
-  }, [mapLoaded]);
+  }, [mapLoaded, location]);
 
   useEffect(() => {
     if (location) updateCircle(location);
@@ -131,15 +134,9 @@ const LocationMap = ({ location, setLocation, radius, readOnly }: Props) => {
           setSearchText(results[0].formatted_address || "");
         } else {
           console.warn("Geocoder failed:", status);
-          setSearchText(""); // fallback
+          setSearchText("");
         }
       });
-    }
-  }, [location]);
-
-  useEffect(() => {
-    if (location) {
-      console.log("Rendering marker at:", location);
     }
   }, [location]);
 
@@ -148,7 +145,7 @@ const LocationMap = ({ location, setLocation, radius, readOnly }: Props) => {
       <div className="absolute top-3 left-3 right-3 z-10">
         <Autocomplete
           onLoad={(autocompleteInstance) => {
-            autocompleteInstance.setComponentRestrictions({ country: "th" }); // Restrict to Thailand
+            autocompleteInstance.setComponentRestrictions({ country: "th" });
             setAutocomplete(autocompleteInstance);
           }}
           onPlaceChanged={handlePlaceChanged}
@@ -161,9 +158,7 @@ const LocationMap = ({ location, setLocation, radius, readOnly }: Props) => {
             onChange={(e) => setSearchText(e.target.value)}
             readOnly={readOnly}
             onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault(); // Prevent Enter from submitting form
-              }
+              if (e.key === "Enter") e.preventDefault();
             }}
           />
         </Autocomplete>
@@ -193,6 +188,7 @@ const LocationMap = ({ location, setLocation, radius, readOnly }: Props) => {
           };
           setLocation(clicked);
           updateCircle(clicked);
+          setMarkerReady(true);
         }}
         options={{
           disableDefaultUI: true,
@@ -200,7 +196,19 @@ const LocationMap = ({ location, setLocation, radius, readOnly }: Props) => {
           streetViewControl: false,
         }}
       >
-        {initialReady && location && <Marker position={location} />}
+        {markerReady && location && (
+          <Marker
+            position={location}
+            icon={
+              readOnly
+                ? {
+                    url: "https://maps.gstatic.com/mapfiles/api-3/images/spotlight-poi2_hdpi.png",
+                    scaledSize: new window.google.maps.Size(30, 40),
+                  }
+                : undefined
+            }
+          />
+        )}
       </GoogleMap>
 
       <div className="absolute top-60 right-3 z-10">
